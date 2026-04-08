@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Noodle Learning Platform — CPQ</title>
+<style>
+:root{
+  --teal:#1A6F8A;--teal-dk:#125068;--teal-lt:#E8F4F8;--teal-mid:#C8E4EE;
+  --ink:#1C1C1C;--ink2:#444;--ink3:#888;--line:#E2E2E2;
+  --surf:#F9F9F8;--wh:#fff;--green:#1A8A5A;--red:#C0392B;
+  --font:'DM Sans',sans-serif;--mono:'DM Mono',monospace
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:inherit;background:#F9F9F8;color:var(--ink);font-size:14px}
+.app{display:grid;grid-template-columns:420px 1fr;height:100vh;overflow:hidden}
+.sidebar{background:var(--wh);border-right:1px solid var(--line);display:flex;flex-direction:column;overflow:hidden}
+.main{display:flex;flex-direction:column;overflow:hidden}
+.s-top{padding:18px 18px 14px;flex-shrink:0;border-bottom:1px solid var(--line)}
+.logo{display:flex;align-items:center;gap:9px;margin-bottom:16px}
+.logo-mark{width:30px;height:30px;background:var(--teal);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px}
+.logo-label{font-size:13px;font-weight:600;color:#1A6F8A;letter-spacing:.04em}
+.logo-sub{font-size:11px;color:#888}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.f{display:flex;flex-direction:column;gap:3px}
+.f.full{grid-column:1/-1}
+.f label{font-size:10px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.06em}
+.f input,.f select{font-family:inherit;font-size:13px;padding:6px 9px;border:1px solid #E2E2E2;border-radius:6px;background:#F9F9F8;color:var(--ink);outline:none;transition:border-color .15s}
+.f input:focus,.f select:focus{border-color:#1A6F8A;background:var(--wh)}
+.cfg-scroll{flex:1;overflow-y:auto;padding:16px 18px 20px}
+.cfg-scroll::-webkit-scrollbar{width:4px}
+.cfg-scroll::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px}
+.sec-lbl{font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.sec-lbl::after{content:'';flex:1;height:1px;background:var(--line)}
+.sec-wrap{margin-bottom:20px}
+.tier-grid{display:grid;gap:6px}
+.tier-opt{border:1.5px solid var(--line);border-radius:8px;padding:10px 12px;cursor:pointer;transition:all .15s;display:flex;align-items:flex-start;gap:8px}
+.tier-opt:hover{border-color:var(--teal-mid)}
+.tier-opt.selected{border-color:#1A6F8A;background:var(--teal-lt)}
+.tier-opt input[type=radio]{accent-color:#1A6F8A;margin-top:2px;flex-shrink:0}
+.tier-name{font-size:13px;font-weight:600;color:var(--ink)}
+.tier-price{font-size:12px;color:#1A6F8A;font-weight:600}
+.item-wrap{border:1px solid #E2E2E2;border-radius:8px;margin-bottom:8px;overflow:hidden}
+.item-hd{padding:10px 12px;background:#FAFAFA;display:flex;align-items:center;gap:8px}
+.item-hd.req{cursor:default}
+.item-hd.opt{cursor:pointer}
+.item-hd input[type=checkbox]{accent-color:#1A6F8A}
+.item-nm{font-size:13px;font-weight:600;color:var(--ink);flex:1}
+.item-badge{font-size:10px;padding:2px 7px;border-radius:10px;font-weight:600}
+.badge-req{background:#F0F0F0;color:#888}
+.badge-opt{background:var(--teal-lt);color:var(--teal-dk)}
+.item-body{padding:10px 12px;border-top:1px solid var(--line);background:var(--wh)}
+.item-body.hidden{display:none}
+.radio-opt{display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border:1px solid #E2E2E2;border-radius:6px;margin-bottom:6px;cursor:pointer;transition:all .15s}
+.radio-opt:last-child{margin-bottom:0}
+.radio-opt:hover{border-color:var(--teal-mid)}
+.radio-opt.sel{border-color:#1A6F8A;background:var(--teal-lt)}
+.radio-opt input{accent-color:#1A6F8A;margin-top:2px;flex-shrink:0}
+.ro-lbl{font-size:13px;font-weight:600;color:var(--ink)}
+.ro-price{font-size:12px;color:#1A6F8A;font-weight:600}
+.ro-note{font-size:11px;color:#888;margin-top:2px;line-height:1.4}
+.sub-opts{margin-top:8px;padding-top:8px;border-top:1px solid var(--line)}
+.sub-chk{display:flex;align-items:flex-start;gap:7px;padding:4px 0;cursor:pointer}
+.sub-chk input{accent-color:#1A6F8A;margin-top:2px}
+.sub-chk-lbl{font-size:12px;color:#444}
+.sub-chk-price{font-size:11px;color:#1A6F8A;font-weight:600}
+.addl-card{border:1px solid #E2E2E2;border-radius:8px;overflow:hidden}
+.addl-row{display:flex;align-items:center;gap:9px;padding:9px 12px;border-bottom:1px solid var(--line)}
+.addl-row:last-child{border-bottom:none}
+.addl-row:hover{background:#FAFAFA}
+.addl-row input[type=checkbox]{accent-color:#1A6F8A;flex-shrink:0}
+.addl-nm{font-size:12px;font-weight:600;color:var(--ink);flex:1;line-height:1.3}
+.addl-type{font-size:10px;color:#888;white-space:nowrap;background:#F0F0F0;padding:1px 5px;border-radius:4px}
+.addl-price{width:88px;font-size:12px;padding:4px 7px;border:1px solid #E2E2E2;border-radius:5px;font-family:inherit;color:var(--ink);background:#F9F9F8}
+.addl-price:disabled{opacity:.35;cursor:not-allowed;background:#F5F5F5}
+.addl-price:focus{outline:none;border-color:#1A6F8A}
+.m-hd{padding:14px 22px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:var(--wh)}
+.m-title{font-size:14px;font-weight:600}
+.m-sub{font-size:12px;color:#888;margin-top:1px}
+.exp-btn{display:flex;align-items:center;gap:7px;padding:8px 16px;background:var(--teal);color:#fff;border:none;border-radius:7px;font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;transition:background .15s}
+.exp-btn:hover{background:var(--teal-dk)}
+.exp-btn:disabled{background:var(--ink3);cursor:not-allowed}
+.exp-btn svg{width:14px;height:14px}
+.prev-wrap{flex:1;overflow-y:auto;padding:22px}
+.prev-wrap::-webkit-scrollbar{width:5px}
+.prev-wrap::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px}
+.doc{max-width:800px;margin:0 auto;background:var(--wh);border:1px solid #E2E2E2;border-radius:10px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.05)}
+.doc-hd{background:var(--teal);padding:18px 30px;display:flex;align-items:center;justify-content:space-between}
+.doc-logo{font-size:18px;font-weight:800;color:#fff;letter-spacing:.06em}
+.doc-logo sup{font-size:9px;vertical-align:super}
+.doc-url{font-size:11px;color:rgba(255,255,255,.65)}
+.doc-bd{padding:30px}
+.doc-h1{font-size:26px;font-weight:300;color:var(--ink);margin-bottom:3px;line-height:1.2}
+.doc-sub{font-size:13px;font-weight:600;color:#444;margin-bottom:20px}
+.divd{height:1px;background:var(--line);margin:18px 0}
+.sec-h{font-size:12px;font-weight:700;color:var(--ink);margin-bottom:7px;padding-bottom:5px;border-bottom:2px solid var(--teal);display:inline-block;text-transform:uppercase;letter-spacing:.04em}
+.para{font-size:12.5px;color:#444;line-height:1.75;margin-bottom:14px}
+.st{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:10px}
+.st .th{background:var(--teal);color:#fff;font-weight:600;padding:7px 11px;font-size:12px;text-align:left}
+.st td{border:1px solid #E2E2E2;padding:7px 11px;vertical-align:top}
+.st .lbl{font-weight:600;background:#FAFAFA;width:150px;color:#444}
+.pv{font-weight:700;color:var(--teal-dk)}
+.bt{width:100%;border-collapse:collapse;font-size:12px;margin-top:10px}
+.bt th{background:var(--teal);color:#fff;padding:7px 11px;font-weight:600;text-align:left}
+.bt td{border:1px solid #E2E2E2;padding:7px 11px}
+.bt .note td{text-align:center;font-style:italic;font-weight:600;background:#FAFAFA}
+.bt tr:nth-child(even):not(.note) td{background:#FAFAFA}
+.sigtbl{width:100%;border-collapse:collapse;margin-top:14px}
+.sigtbl td{padding:6px 16px 6px 0;vertical-align:top;width:50%}
+.sig-nm{font-weight:700;font-size:13px;margin-bottom:10px}
+.sig-ln{border-bottom:1px solid var(--ink3);margin-bottom:7px;height:26px}
+.sig-f{font-size:12px;color:#444;margin-bottom:5px}
+.sbar{padding:7px 22px;border-top:1px solid var(--line);background:var(--wh);display:flex;align-items:center;gap:10px;flex-shrink:0}
+.sdot{width:7px;height:7px;border-radius:50%;background:var(--green)}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--ink);color:#fff;padding:11px 16px;border-radius:8px;font-size:13px;opacity:0;transform:translateY(8px);transition:all .2s;pointer-events:none;z-index:999}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.ok{background:var(--green)}
+.toast.er{background:var(--red)}
+</style>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="app">
+<div class="sidebar">
+  <div class="s-top">
+    <div class="logo">
+      <div class="logo-mark">N</div>
+      <div><div class="logo-label">NOODLE™ CPQ</div><div class="logo-sub">NLP SOW Builder</div></div>
+    </div>
+    <div class="fg">
+      <div class="f full"><label>Client Name</label><input id="cln" placeholder="e.g. Xavier University" oninput="rp()"></div>
+      <div class="f"><label>SOW Start Date</label><input id="sd" type="date" onchange="rp()"></div>
+      <div class="f"><label>Term (months)</label><input id="term" type="number" value="60" min="12" step="12" oninput="rp()"></div>
+      <div class="f full"><label>Partner Type</label>
+        <select id="ptype" onchange="togglePartnerType()">
+          <option value="new">New Partner</option>
+          <option value="existing">Existing Partner</option>
+        </select>
+      </div>
+      <div class="f full" id="gtbRow" style="display:none">
+        <label>GTB Signed Date</label><input id="gtbDate" type="date" onchange="rp()">
+      </div>
+    </div>
+  </div>
+
+  <div class="cfg-scroll">
+    <div class="sec-wrap">
+      <div class="sec-lbl">NLP Licensing Fee</div>
+      <div class="tier-grid" id="tierGrid"></div>
+    </div>
+
+    <div class="sec-wrap">
+      <div class="sec-lbl">Required Services</div>
+      <div class="item-wrap">
+        <div class="item-hd req"><span class="item-nm">Discovery</span><span class="item-badge badge-req">Required</span></div>
+        <div class="item-body"><div style="font-size:12px;color:#444">One-time <strong style="color:#1A6F8A">$20,000</strong> technical discovery (4–6 weeks)</div></div>
+      </div>
+      <div class="item-wrap">
+        <div class="item-hd req"><span class="item-nm">LMS Integration</span><span class="item-badge badge-req">Required</span></div>
+        <div class="item-body">
+          <label class="radio-opt sel" id="lmsOpt0" onclick="selLMS(0)"><input type="radio" name="lms" checked><div><div class="ro-lbl">Connect existing LMS</div><div class="ro-price">$30,000 one-time</div></div></label>
+          <label class="radio-opt" id="lmsOpt1" onclick="selLMS(1)"><input type="radio" name="lms"><div><div class="ro-lbl">Noodle LMS (Moodle)</div><div class="ro-price">$10,000 / year</div></div></label>
+        </div>
+      </div>
+      <div class="item-wrap">
+        <div class="item-hd req"><span class="item-nm">Merchant of Record</span><span class="item-badge badge-req">Required</span></div>
+        <div class="item-body">
+          <label class="radio-opt" id="morOpt0" onclick="selMOR(0)"><input type="radio" name="mor"><div><div class="ro-lbl">Noodle is Merchant of Record</div><div class="ro-price">$40,000 / year</div></div></label>
+          <label class="radio-opt" id="morOpt1" onclick="selMOR(1)"><input type="radio" name="mor"><div><div class="ro-lbl">Client is Merchant of Record</div><div class="ro-price">No fee</div></div></label>
+          <div id="morWarn" style="display:block;font-size:11px;color:#C0392B;margin-top:8px;padding:6px 8px;background:#FCEBEB;border-radius:5px;">⚠ Please select a Merchant of Record option before exporting.</div>
+        </div>
+      </div>
+    </div>
+
+
+
+    <div class="sec-wrap">
+      <div class="sec-lbl">Additional Services</div>
+      <div class="addl-card" id="addlRows"></div>
+      <div style="font-size:11px;color:#888;font-style:italic;margin-top:6px;padding:0 2px">Enter price for each selected service. Appears as Section 3 in the Word doc.</div>
+    </div>
+
+    <div class="sec-wrap">
+      <div class="sec-lbl">Billing</div>
+      <div style="font-size:11px;color:#888;line-height:1.6;margin-bottom:10px;padding:8px 10px;background:#FAFAFA;border:1px solid #E2E2E2;border-radius:6px;">
+        <strong style="color:#444">Year 1:</strong> All fees invoiced on SOW Effective Date.<br>
+        <strong style="color:#444">Year 2+:</strong> Annual fees invoiced on Anniversary of SOW Effective Date.<br>
+        <strong style="color:#444">One-time fees:</strong> Invoiced once on SOW Effective Date only.
+      </div>
+      <div class="f">
+        <label>Annual Inflation Rate <span style="font-size:10px;color:#888;font-weight:400">(Year 2+)</span></label>
+        <div style="display:flex;align-items:center;gap:8px">
+          <input id="inflation" type="number" value="0" min="0" max="20" step="0.5" oninput="rp()" style="width:70px">
+          <span style="font-size:13px;color:#444">%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="m-hd">
+    <div><div class="m-title">SOW Preview — Noodle Learning Platform</div><div class="m-sub" id="msub">Configure services to begin</div></div>
+    <button class="exp-btn" id="expBtn" onclick="exportDoc()">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 2v8M5 7l3 3 3-3M2 11v2a1 1 0 001 1h10a1 1 0 001-1v-2"/></svg>
+      Export Word Doc
+    </button>
+  </div>
+  <div class="prev-wrap"><div id="pv"><div style="text-align:center;padding:70px 20px;color:#888"><div style="font-size:36px;margin-bottom:10px;opacity:.35">📄</div><div style="font-size:14px;font-weight:500;margin-bottom:6px">SOW preview appears here</div><div style="font-size:12px">Select a licensing tier to begin</div></div></div></div>
+  <div class="sbar"><div class="sdot"></div><span style="font-size:12px;color:#888">Ready</span></div>
+</div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import * as docxLib from "https://unpkg.com/docx@8.5.0/build/index.mjs";
+window._docxLib = docxLib;
+</script>
+<script>
+const ADDL_CATALOG=[
+  {id:'webaddl',name:'Website Design & Development',code:'MKT-LCH-WEBDEV',type:'One-Time',defaultPrice:30000,
+   overview:'Noodle will design and develop a customized microsite experience to support Client\'s marketing and recruitment objectives. This service includes strategic discovery, information architecture, content placement, thematic design, and technical configuration. The resulting microsite will reflect Client\'s brand standards, support targeted user journeys, and integrate with standard inquiry workflows.',
+   scopeSections:[
+     {heading:'Website Discovery Workshop',
+      items:['Identify key visual design preferences and brand considerations','Define primary and secondary user flows','Align on content hierarchy, messaging priorities, and audiences','Establish structural and functional requirements for the microsite']},
+     {heading:'SEO Keyword Research & Sitemap Development',
+      items:['Conduct SEO research to identify high-impact programmatic and institutional keywords','Develop a sitemap optimized for organic discoverability and user navigation','Recommend content organization aligned with Client\'s goals']},
+     {heading:'Content Placement & Page Build',
+      intro:'In addition to providing out of the box templates for course pages, Noodle will design and build up to:',
+      items:['Five (5) top-level site pages','Three (3) supporting pages','One (1) round of revisions per page'],
+      deliverables:['Layout and design implementation','Placement of Client-provided content','Integration of images, graphics, and styling elements','Mobile-responsive formatting']},
+     {heading:'Site Theme & RFI Configuration',
+      items:['Develop a child theme for the microsite','Apply styling for articles, faculty listings, and events (where applicable)','Create and configure an RFI (Request for Information) form','Test form submission, field logic, and thank-you page functionality']}
+   ],
+   resp:['Provide all site content, brand guidelines, and media assets needed for page creation','Review and approve wireframes, designs, content placement, and revisions','Provide access to any institutional systems required (e.g., CRM endpoints for form routing)','Participate in discovery, feedback cycles, and final acceptance testing'],
+   feesNote:null, // Generated dynamically using section numbers
+   limitItems:[
+     'Custom development or bespoke platform features are not included',
+     'Additional pages, additional revision rounds, or ongoing content updates are not included',
+     'Marketing copywriting, new photography, videography, or content creation are not included',
+     'Multisite builds or additional microsites require separate scoping and fees'
+   ]},
+];
+
+const NLP_TIERS=[
+  {fee:65000,learners:1000},{fee:115000,learners:5000},{fee:165000,learners:10000},
+  {fee:340000,learners:25000},{fee:565000,learners:50000},{fee:1015000,learners:100000},
+  {fee:3015000,learners:325000},{fee:5015000,learners:550000},
+];
+
+let selTier=0,lmsOption=0,morOption=-1; // -1 = no selection
+
+function buildTierGrid(){
+  const g=document.getElementById('tierGrid');
+  NLP_TIERS.forEach((t,i)=>{
+    const d=document.createElement('label');
+    d.className='tier-opt'+(i===0?' selected':'');d.id='tier_'+i;
+    d.innerHTML=`<input type="radio" name="nlptier" ${i===0?'checked':''} onchange="selTierFn(${i})">
+      <div><div class="tier-name">Up to ${t.learners.toLocaleString()} Learners</div>
+      <div class="tier-price">$${t.fee.toLocaleString()} / year</div></div>`;
+    g.appendChild(d);
+  });
+}
+function selTierFn(i){selTier=i;document.querySelectorAll('.tier-opt').forEach((el,j)=>el.classList.toggle('selected',j===i));rp();}
+
+function buildAddlRows(){
+  const c=document.getElementById('addlRows');
+  ADDL_CATALOG.forEach(svc=>{
+    const row=document.createElement('div');row.className='addl-row';
+    row.innerHTML=`<input type="checkbox" id="addl_${svc.id}" onchange="toggleAddl('${svc.id}')">
+      <div class="addl-nm">${svc.name}</div>
+      <span class="addl-type">${svc.type}</span>
+      <div style="display:flex;align-items:center;gap:3px">
+        <span style="font-size:12px;color:#888">$</span>
+        <input class="addl-price" type="number" id="addlprice_${svc.id}" value="${svc.defaultPrice||0}" min="0" step="1000" disabled oninput="rp()" placeholder="0">
+      </div>`;
+    c.appendChild(row);
+  });
+}
+function toggleAddl(id){
+  const cb=document.getElementById('addl_'+id);
+  const px=document.getElementById('addlprice_'+id);
+  px.disabled=!cb.checked;
+  if(cb.checked&&parseFloat(px.value)===0)px.focus();
+  rp();
+}
+function getAddlSelected(){
+  return ADDL_CATALOG.filter(s=>document.getElementById('addl_'+s.id)?.checked).map(s=>({
+    ...s,price:parseFloat(document.getElementById('addlprice_'+s.id)?.value)||0
+  }));
+}
+
+function selLMS(i){lmsOption=i;document.getElementById('lmsOpt0').classList.toggle('sel',i===0);document.getElementById('lmsOpt1').classList.toggle('sel',i===1);rp();}
+function selMOR(i){morOption=i;document.getElementById('morOpt0').classList.toggle('sel',i===0);document.getElementById('morOpt1').classList.toggle('sel',i===1);rp();}
+function togglePartnerType(){document.getElementById('gtbRow').style.display=document.getElementById('ptype').value==='existing'?'block':'none';rp();}
+
+function fmtD(ds){if(!ds)return null;return new Date(ds+'T00:00:00').toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});}
+
+function getSowData(){
+  const client=document.getElementById('cln').value||'[Client Name]';
+  const sd=document.getElementById('sd').value;
+  const termMonths=parseInt(document.getElementById('term').value)||60;
+  const termYears=Math.ceil(termMonths/12);
+  const inflationPct=parseFloat(document.getElementById('inflation').value)||0;
+  const partnerType=document.getElementById('ptype').value;
+  const gtbDate=fmtD(document.getElementById('gtbDate').value);
+  const startStr=fmtD(sd)||'[Start Date]';
+  let endStr='[End Date]';
+  if(sd){const d=new Date(sd+'T00:00:00');d.setMonth(d.getMonth()+termMonths);d.setDate(d.getDate()-1);endStr=d.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});}
+  const tier=NLP_TIERS[selTier];
+  const startCalYear=sd?new Date(sd+'T00:00:00').getFullYear():new Date().getFullYear();
+
+  const nlpServices=[];
+  nlpServices.push({name:'Noodle Learning Platform Annual License Fee',code:'TECH-ANN-NLP-LIC',type:'Annual',fee:tier.fee,note:'Up to '+tier.learners.toLocaleString()+' Active Learners'});
+  nlpServices.push({name:'Noodle Learning Platform Discovery & Implementation',code:'TECH-LCH-NLP-DISC',type:'One-Time',fee:20000,note:'4–6 week technical discovery and platform setup'});
+  if(lmsOption===0)nlpServices.push({name:'LMS Integration — Existing LMS Connector',code:'TECH-LCH-NLP-LMSINT',type:'One-Time',fee:30000,note:'Integration with your existing LMS'});
+  else nlpServices.push({name:'Noodle LMS (Moodle) — Hosted & Managed',code:'TECH-ANN-NLP-MOODLE',type:'Annual',fee:10000,note:'Noodle-hosted and managed Moodle LMS'});
+  if(morOption===0)
+    nlpServices.push({name:'Merchant of Record Services',code:'TECH-ANN-NLP-MOR',type:'Annual',fee:40000,note:'Noodle acts as Merchant of Record'});
+
+
+  const addlServices=getAddlSelected();
+  const allServices=[
+    ...nlpServices,
+    ...addlServices.map(s=>({name:s.name,code:s.code,type:s.type,fee:s.price,note:s.type==='Annual'?'Annual service':'One-time service'}))
+  ];
+  const annualSvcs=allServices.filter(s=>s.type==='Annual');
+  const onetimeSvcs=allServices.filter(s=>s.type==='One-Time');
+  function applyInf(fee,y){if(y<=1||inflationPct===0)return fee;return Math.round(fee*(1+(inflationPct/100)*(y-1)));}
+
+  // Fixed billing: Year 1 = SOW Effective Date (all fees), Year 2+ = Anniversary (annual only)
+  const billingSchedule=[];
+  for(let y=1;y<=termYears;y++){
+    let invoices;
+    if(y===1){
+      const rows=[];
+      onetimeSvcs.forEach(s=>{if(s.fee===0)return;rows.push({service:s.name,code:s.code,type:'one-time',amount:'$'+s.fee.toLocaleString(),date:'SOW Effective Date'});});
+      annualSvcs.forEach(s=>{const inf=applyInf(s.fee,1);if(inf===0)return;rows.push({service:s.name,code:s.code,type:'annual',amount:'$'+inf.toLocaleString(),date:'SOW Effective Date'});});
+      invoices=[{invoiceNum:1,date:'SOW Effective Date',rows}];
+    } else {
+      const rows=[];
+      annualSvcs.forEach(s=>{const inf=applyInf(s.fee,y);if(inf===0)return;rows.push({service:s.name,code:s.code,type:'annual',amount:'$'+inf.toLocaleString(),date:'Anniversary of SOW Effective Date'});});
+      invoices=[{invoiceNum:1,date:'Anniversary of SOW Effective Date',rows}];
+    }
+    const allRows=invoices.flatMap(inv=>inv.rows);
+    billingSchedule.push({year:y,invoices,rows:allRows,firstDate:invoices[0]?.date||'[Date]'});
+  }
+  return{client,startStr,endStr,termMonths,termYears,partnerType,gtbDate,tier,nlpServices,addlServices,allServices,billingSchedule,inflationPct,hasAddl:addlServices.length>0,lmsOption,morOption};
+}
+
+function rp(){
+  const d=getSowData();
+  document.getElementById('msub').textContent=d.client+' · '+d.tier.learners.toLocaleString()+' learners · $'+d.tier.fee.toLocaleString()+'/yr'+(d.hasAddl?' + '+d.addlServices.length+' additional service'+(d.addlServices.length>1?'s':''):'');
+  document.getElementById('expBtn').disabled=(d.morOption===-1);
+  document.getElementById('morWarn').style.display=d.morOption===-1?'block':'none';
+
+  // Build a simple services list for preview
+  let svcsHtml='<table class="bt" style="margin-bottom:10px"><tr><th>Service</th><th style=\"width:120px\">Type</th><th style=\"width:130px\">Fee</th></tr>';
+  d.nlpServices.forEach(s=>{
+    if(s.fee===0)return;
+    svcsHtml+=`<tr><td>${s.name}</td><td>${s.type}</td><td><span class="pv">$${s.fee.toLocaleString()}${s.type==='Annual'?' / yr':' one-time'}</span></td></tr>`;
+  });
+  svcsHtml+='</table>';
+
+  let addlHtml='';
+  if(d.hasAddl){
+    addlHtml+=`<div class="divd"></div><div class="sec-h">3. Additional Services</div>`;
+    addlHtml+=`<div class="para">This Statement of Work includes access to NLP along with additional services designed to support ${d.client}'s lifelong learning strategy, learner engagement, and digital experience (the "Additional Services").</div>`;
+    d.addlServices.forEach((s,i)=>{
+      let scopeHtml='';
+      if(s.scopeSections){
+        s.scopeSections.forEach(sec=>{
+          scopeHtml+=`<div style="font-size:11px;font-weight:700;color:#444;margin:6px 0 3px">${sec.heading}</div>`;
+          sec.items.forEach(item=>{scopeHtml+=`<div style="font-size:11px;color:#666;padding-left:10px">• ${item}</div>`;});
+          if(sec.deliverables){scopeHtml+=`<div style="font-size:11px;color:#444;margin-top:4px;font-style:italic">Deliverables include:</div>`;sec.deliverables.forEach(item=>{scopeHtml+=`<div style="font-size:11px;color:#666;padding-left:10px">• ${item}</div>`;});}
+        });
+      }
+      addlHtml+=`<div style="margin-bottom:16px;padding:12px;border:1px solid #E2E2E2;border-radius:8px;background:#FAFAFA">
+        <div style="font-size:12px;font-weight:700;color:#1A6F8A;margin-bottom:6px">3.${i+2}. ${s.name}</div>
+        <div style="font-size:12px;color:#444;line-height:1.6;margin-bottom:8px">${s.overview}</div>
+        ${scopeHtml?`<div style="margin-bottom:8px">${scopeHtml}</div>`:''}
+        <table class="st"><tr><td class="lbl">Type</td><td>${s.type}</td></tr>
+        <tr><td class="lbl">Fee</td><td><span class="pv">$${s.price.toLocaleString()}${s.type==='Annual'?' / year':' (one-time)'}</span></td></tr></table>
+      </div>`;
+    });
+  }
+
+  let bRows='';
+  d.billingSchedule.forEach((yg,i)=>{
+    let total=0;yg.rows.forEach(r=>{const m=r.amount.replace(/,/g,'').match(/\$([\d.]+)/);if(m)total+=parseFloat(m[1]);});
+    const shade=i%2===1?'background:#FAFAFA':'';
+    bRows+=`<tr style="${shade}"><td style="text-align:center;font-weight:600">Year ${yg.year}</td><td style="text-align:center;font-weight:600">$${Math.round(total).toLocaleString()}</td><td style="text-align:center">${yg.firstDate}</td></tr>`;
+  });
+
+  const termSec=d.hasAddl?6:5;const feesSec=d.hasAddl?7:6;
+  const ptPara=d.partnerType==='existing'&&d.gtbDate
+    ?`Payment Terms are outlined in the General Terms of Business entered into on ${d.gtbDate}. All payments are due Net 30.`
+    :`Payment Terms are outlined in the <a href="https://about.noodle.com/general-terms-of-business/version_2-1/" style="color:#1A6F8A">General Terms of Business</a>. All payments are due Net 30.`;
+
+  document.getElementById('pv').innerHTML=`<div class="doc">
+    <div class="doc-hd"><div class="doc-logo">N<sup>™</sup>OODLE</div><div class="doc-url">highered.noodle.com</div></div>
+    <div class="doc-bd">
+      <div class="doc-h1">Statement of Work</div>
+      <div class="doc-sub">Noodle Learning Platform for ${d.client}</div>
+      <div class="divd"></div>
+      <div class="sec-h">Introduction</div>
+      <div class="para">This SOW is made as of the date of last signature below (the "Effective Date"), by and between Noodle Partners, PBC ("Noodle") and ${d.client} ("Client").</div>
+      <div class="divd"></div>
+      <div class="sec-h">2. Provision of the Product (NLP)</div>
+      ${svcsHtml}
+      ${addlHtml}
+      <div class="divd"></div>
+      <div class="sec-h">${feesSec}. Payment Terms &amp; Billing Schedule</div>
+      <div class="para">${ptPara}</div>
+      <table class="bt">
+        <tr><th style="width:20%">Year</th><th>Year Total</th><th style="width:30%">First Invoice Date</th></tr>
+        <tr class="note"><td colspan="3">Year 1: all fees on SOW Effective Date. Year 2+: annual fees on Anniversary of SOW Effective Date.</td></tr>
+        ${bRows}
+      </table>
+      ${d.inflationPct>0?`<div style="font-size:11px;color:#888;margin-top:6px">↑ ${d.inflationPct}% annual inflation on annual fees from Year 2.</div>`:''}
+      <div style="font-size:12px;color:#1A6F8A;font-style:italic;margin-top:8px">See Appendix A in the exported Word doc for the full invoice schedule.</div>
+      <div class="divd"></div>
+      <div class="sec-h">${termSec}. Term</div>
+      <div class="para">SOW Term: ${d.startStr} through ${d.endStr} (${d.termMonths} months). Auto-renews annually unless either Party provides written termination notice ≥ 30 days prior to the end of the SOW Term.</div>
+      <div class="divd"></div>
+      <div class="sec-h">Agreement</div>
+      <table class="sigtbl"><tr>
+        <td><div class="sig-nm">${d.client}</div><div class="sig-ln"></div><div class="sig-f">Name:</div><div class="sig-f">Title:</div><div class="sig-f">Date:</div></td>
+        <td><div class="sig-nm">Noodle Partners, PBC</div><div class="sig-ln"></div><div class="sig-f">Name: John Katzman</div><div class="sig-f">Title: Chief Executive Officer</div><div class="sig-f">Date:</div></td>
+      </tr></table>
+    </div>
+  </div>`;
+}
+
+function toast(msg,cls){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show '+(cls||'');setTimeout(()=>t.className='toast',3000);}
+
+function exportDoc(){
+  const btn=document.getElementById('expBtn');btn.disabled=true;
+  setTimeout(()=>{try{const d=getSowData();buildDocx(d,btn,blob=>{const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='NLP_SOW_'+(d.client||'Noodle').replace(/[^a-zA-Z0-9]/g,'_')+'.docx';a.click();URL.revokeObjectURL(url);toast('Word doc downloaded!','ok');btn.disabled=false;});}catch(e){console.error(e);toast('Error: '+e.message,'er');btn.disabled=false;}},50);
+}
+
+function buildDocx(SOW,btn,onDone){
+  const _d=window._docxLib;
+  if(!_d){toast('docx library still loading — please try again in a moment.','er');btn.disabled=false;return;}
+  const{Document,Packer,Paragraph,TextRun,Table,TableRow,TableCell,AlignmentType,BorderStyle,WidthType,ShadingType,VerticalAlign,LevelFormat,Header,Footer,TabStopType,TabStopPosition}=_d;
+  const TEAL='1A6F8A',WHITE='FFFFFF',GRAY='F5F5F5',INK2='444444',TEAL_LT='E8F4F8';
+  const bdr=c=>({style:BorderStyle.SINGLE,size:1,color:c||'CCCCCC'});
+  const ab=c=>{const x=bdr(c);return{top:x,bottom:x,left:x,right:x};};
+  const anb=()=>{const x={style:BorderStyle.NIL,size:0,color:WHITE};return{top:x,bottom:x,left:x,right:x};};
+  const cm={top:100,bottom:100,left:150,right:150};
+  const T=(text,o={})=>new TextRun({text:String(text),font:'Arial',size:o.size||20,bold:o.bold||false,color:o.color||'000000',italics:o.italic||false});
+  const P=(kids,o={})=>new Paragraph({alignment:o.align||AlignmentType.LEFT,spacing:{before:o.before||0,after:o.after||80},children:Array.isArray(kids)?kids:[kids]});
+  const bullet=text=>new Paragraph({numbering:{reference:'bullets',level:0},spacing:{before:0,after:60},children:[T(text,{size:18})]});
+  const secHead=text=>new Paragraph({spacing:{before:240,after:120},border:{bottom:{style:BorderStyle.SINGLE,size:6,color:TEAL,space:1}},children:[T(text,{bold:true,size:22,color:TEAL})]});
+  const tealCellC=(txt,span,w)=>new TableCell({columnSpan:span||1,width:{size:w||4680,type:WidthType.DXA},borders:ab(TEAL),shading:{fill:TEAL,type:ShadingType.CLEAR},margins:cm,children:[new Paragraph({alignment:AlignmentType.CENTER,spacing:{before:0,after:0},children:[T(txt,{bold:true,size:18,color:WHITE})]})]});
+  const tealCellL=(txt,span,w)=>new TableCell({columnSpan:span||2,width:{size:w||9360,type:WidthType.DXA},borders:ab(TEAL),shading:{fill:TEAL,type:ShadingType.CLEAR},margins:cm,children:[P(T(txt,{bold:true,size:20,color:WHITE}),{after:0})]});
+  const lblCell=txt=>new TableCell({width:{size:1800,type:WidthType.DXA},borders:ab(),margins:cm,shading:{fill:GRAY,type:ShadingType.CLEAR},verticalAlign:VerticalAlign.TOP,children:[P(T(txt,{bold:true,size:18}),{after:0})]});
+  const valCell=kids=>new TableCell({width:{size:7560,type:WidthType.DXA},borders:ab(),margins:cm,verticalAlign:VerticalAlign.TOP,children:Array.isArray(kids)?kids:[kids]});
+  const cCell=(txt,w,shade)=>new TableCell({width:{size:w||3120,type:WidthType.DXA},borders:ab(),margins:cm,shading:shade?{fill:shade,type:ShadingType.CLEAR}:undefined,children:[new Paragraph({alignment:AlignmentType.CENTER,spacing:{before:0,after:0},children:[T(txt,{size:18})]})]});
+
+  const hasAddl=SOW.hasAddl;
+  const sn={
+    training:hasAddl?4:3,support:hasAddl?5:4,term:hasAddl?6:5,
+    fees:hasAddl?7:6,data:hasAddl?8:7,rep:hasAddl?9:8,prop:hasAddl?10:9,
+    gtb:hasAddl?11:10,fin:hasAddl?12:11
+  };
+  const ch=[];
+
+  // Title
+  ch.push(new Paragraph({spacing:{before:0,after:80},children:[T('Statement of Work',{size:40})]}));
+  ch.push(new Paragraph({spacing:{before:0,after:80},children:[T('Noodle Learning Platform for '+SOW.client,{size:28,color:INK2})]}));
+  ch.push(P(T(''),{after:120}));
+
+  // Introduction
+  ch.push(secHead('Introduction'));
+  ch.push(P([T('This Statement of Work (this "SOW") is made as of the date of last signature below (the "Effective Date"), by and between Noodle Partners, PBC, a Delaware corporation with offices at 60 Chelsea Piers, 2nd Floor, Suite 6020, New York, NY 11011 ("Noodle"), and ',{size:20}),T(SOW.client,{size:20,bold:true}),T(' ("Client" or "you"). Each of Noodle and Client may also be referred to as a "Party" herein and together as the "Parties."',{size:20})],{after:100}));
+  ch.push(P([T('WHEREAS, Noodle has developed a proprietary software-as-a-service application (the "Product") which enables universities to administer lifelong learning content to their audience of learners; and',{size:20})],{after:100}));
+  ch.push(P([T('WHEREAS, Client desires to access and use the Product detailed below, and Noodle desires to provide such access, in accordance with the terms and conditions herein;',{size:20})],{after:100}));
+  ch.push(P([T('Noodle and Client hereby agree as follows:',{size:20})],{after:100}));
+  if(SOW.partnerType==='existing'&&SOW.gtbDate){
+    ch.push(P([T('This SOW incorporates by reference the General Terms of Business entered into on '+SOW.gtbDate+' (the "GTB"), the attached Data Protection Addendum, and any other attachments hereto, which together contains the complete understanding and Agreement of the Parties with respect to the subject matter hereof, and supersedes all prior or contemporaneous agreements or understandings, oral or written, with respect thereto. If there is a conflict between the terms of this SOW and the GTB, this SOW shall control.',{size:20})],{after:160}));
+  } else {
+    ch.push(P([T('This SOW incorporates by reference Noodle\'s General Terms of Business, located at ',{size:20}),T('https://about.noodle.com/general-terms-of-business/version_2-1/',{size:20,color:TEAL}),T(' (the "GTB"), the attached Data Protection Addendum, and any other attachments hereto, which together contains the complete understanding and Agreement of the Parties with respect to the subject matter hereof, and supersedes all prior or contemporaneous agreements or understandings, oral or written, with respect thereto. If there is a conflict between the terms of this SOW and the GTB, this SOW shall control.',{size:20})],{after:160}));
+  }
+
+  // Definitions
+  ch.push(secHead('Definitions'));
+  ch.push(P([T('Note: certain terms are defined in the GTB.',{size:20,italic:true})],{after:80}));
+  const defs=[['Product','The Noodle Learning Platform ("NLP").'],['Active Learners','An entity passing through the NLP software (paid or free) with at least one login in the last 12 month period.'],['User','An individual authorized by Client to use the Product regardless of whether the individual has logged into the Product.'],['NLP Licensing Fee','The annual fee Client pays in advance to Noodle as of the Effective Date, and for each year thereafter, for the use of NLP.']];
+  if(hasAddl)defs.push(['Additional Services','The technology and services described in Section 3 of this SOW, which are separate from the Product and may have distinct fees, scopes of work, and terms.']);
+  defs.forEach(([term,def])=>{ch.push(new Paragraph({spacing:{before:60,after:40},children:[T(term+': ',{size:20,italic:true,bold:true}),T(def,{size:20})]}));});
+  ch.push(P(T(''),{after:80}));
+
+  // Section 1: Overview
+  ch.push(secHead('1. Overview of the Product'+(hasAddl?' and Services':'')));
+  if(hasAddl){ch.push(P([T('This Statement of Work includes access to NLP along with additional services designed to support Client\'s lifelong learning strategy, learner engagement, and digital experience (the "Additional Services"). The Product and Additional Services are described in further detail in Sections 2 and 3, respectively.',{size:20})],{after:100}));}
+  ch.push(P([T('NLP provides Client with technology to drive a robust strategy in the non-degree space, generating new enrollments and revenue. NLP leverages Noodle\'s expertise in learner acquisition and social learning to build a platform that allows Client to:',{size:20})],{after:80}));
+  ['Deliver courses with complex learning designs and a mix of synchronous and asynchronous learning.',
+   'Make learning more enjoyable and more effective through grouping students into small cohorts and giving them tools to work with each other easily. Those tools integrate and supplement best-in-class technologies.',
+   'Easily create custom learning environments for different audiences, such as alumni, communities of practitioners, or the employees of a corporate partner.'].forEach(item=>ch.push(bullet(item)));
+  ch.push(P([T('Each custom learning environment that Client chooses to create can be branded with Client\'s own marks and styles.',{size:20})],{before:80,after:160}));
+
+  // Section 2: NLP
+  ch.push(secHead('2. Provision of the Product'));
+  if(hasAddl)ch.push(P([T('This section applies solely to the Noodle Learning Platform ("Product") as defined in Section 1 and the Definitions. All Additional Services are described in Section 3.',{size:20,italic:true})],{after:80}));
+  ch.push(P([T('2.1 Noodle\'s Provision: ',{size:20,bold:true}),T('Noodle will license to Client the Noodle Learning Platform at the following fees:',{size:20})],{after:80}));
+
+
+
+  // NLP tier table
+  ch.push(P([T('NLP Licensing Fee Tiers',{size:20,bold:true})],{before:120,after:80}));
+  const tRows=[new TableRow({children:[tealCellC('NLP Licensing Fee',1,4680),tealCellC('Maximum Active Learners on Platform',1,4680)]})];
+  NLP_TIERS.forEach(t=>tRows.push(new TableRow({children:[cCell('$'+t.fee.toLocaleString(),4680),cCell(t.learners.toLocaleString(),4680)]})));
+  ch.push(new Table({width:{size:9360,type:WidthType.DXA},columnWidths:[4680,4680],rows:tRows}));
+  ch.push(P([T('The NLP Licensing Fee is based on the total number of Active Learners. When the number of Active Learners passes the threshold for a given tier, Client is invoiced a prorated amount to cover the higher tier fee for the remainder of the billing year.',{size:20})],{before:120,after:80}));
+  ch.push(P([T('Pricing Validity: ',{size:20,bold:true,italic:true}),T('The fees stated in this SOW are valid only for agreements executed on or before May 30, 2026. If this SOW is signed before that date, the stated pricing will remain in effect for the duration of the initial term. For any renewal term or for agreements executed after August 31, 2026, Noodle reserves the right to modify pricing at its sole discretion.',{size:20})],{after:80}));
+  ch.push(P([T('Support: ',{size:20,bold:true,italic:true}),T('24/7 support for Active Learners and Users is included in the NLP Licensing Fee.',{size:20})],{after:80}));
+  ch.push(P([T('Transaction Fees: ',{size:20,bold:true,italic:true}),T('Credit card transaction fees, taxes, and foreign exchange fees are automatically removed from the gross revenue collected during each transaction. Net revenue per transaction is passed into a dedicated Stripe account for Client.',{size:20})],{after:80}));
+  const implText = SOW.lmsOption===0
+    ? 'The implementation services outlined in this SOW include the integration and connection with your Learning Management System (LMS). Any additional integrations beyond the LMS, whether with third-party systems, tools, or platforms, will require a separate assessment. Such additional integrations will be subject to approval and will incur an additional fee, which will be outlined in a separate agreement or amendment.'
+    : 'The implementation services outlined in this SOW include the integration and connection of the Product with a Noodle-hosted instance of Moodle ("Noodle Moodle"). Noodle will provision and maintain this Noodle Moodle instance for Client, and Client acknowledges that the associated licensing and hosting fees will be invoiced by Noodle. Any additional integrations beyond the LMS, whether with third-party systems, tools, or platforms, will require a separate assessment. Such additional integrations will be subject to approval and will incur an additional fee, which will be outlined in a separate agreement or amendment.';
+  ch.push(P([T('Implementation: ',{size:20,bold:true,italic:true}),T(implText,{size:20})],{after:80}));
+  ch.push(P([T('Discovery: ',{size:20,bold:true,italic:true}),T('The Technical Discovery period is a 4-6 week phase designed to ensure that Noodle\'s technology solutions are tailored to meet your specific needs. During this phase, Noodle will collaborate with the Client to define and align on objectives, system requirements, IT needs, and desired integrations. This process ensures a comprehensive understanding and scoping of the technology to support the Client\'s goals effectively.',{size:20})],{after:80}));
+  const morText = SOW.morOption===0
+    ? 'Noodle will serve as the merchant of record for all credit card transactions related to the Services provided under this Agreement. In this capacity, Noodle will assume responsibility for payment processing, tax compliance, and associated administrative obligations, including the collection and remittance of applicable sales taxes. The Client acknowledges and agrees to an annual Merchant of Record fee of $40,000 to cover these services and related costs.'
+    : 'The Client will serve as the merchant of record for all credit card transactions related to the Services provided under this Agreement. In this capacity, the Client will be responsible for payment processing, tax compliance, and all associated administrative obligations, including the collection and remittance of applicable sales taxes. Noodle will not assume any merchant of record responsibilities under this Agreement. If the Client does not serve as the merchant of record at any time during the Term, Noodle will assume this responsibility and the annual Merchant of Record fee of $40,000 will apply.';
+  ch.push(P([T('Merchant of Record: ',{size:20,bold:true,italic:true}),T(morText,{size:20})],{after:80}));
+  ch.push(P([T('Additional Technology: ',{size:20,bold:true,italic:true}),T('Client is responsible for all fees associated with the use of specialty LTI, LMS (other than Noodle Moodle), CMS, or other technologies. Noodle may assist in the procurement and management of these technologies for an additional fee.',{size:20})],{after:80}));
+  ch.push(P([T('2.2 Provision Generally. ',{size:20,bold:true,italic:true}),T('During the SOW Term or any Renewal Term (as defined in Section '+sn.term+'), Noodle will provide Client with access to and use of the Product through Noodle\'s cloud-hosted software-as-a-service application. Noodle will provide Client with access to the documentation for the Product. Client may upload information into the Product (the "Client Data"), which may include, without limitation, personally identifiable information ("PII") regarding Users of Client, which may be subject to the Family Education Rights and Privacy Act (FERPA) and other data privacy laws. The Product will generate results based on analysis of Client Data (the "Results"), which Client can access within the Product.',{size:20})],{after:80}));
+  ch.push(P([T('2.3 Grant of Rights. ',{size:20,bold:true,italic:true}),T('Subject to Client\'s compliance with the terms and conditions of this SOW, Noodle hereby grants to Client a limited, non-exclusive, non-transferable, non-sublicensable right to access and use the Product, solely for Client to offer educational content for their Active Learners and Users, during the applicable SOW Term or Renewal Term. All rights not expressly granted to Client are reserved by Noodle and its licensors or other providers. There are no implied rights.',{size:20})],{after:80}));
+  ch.push(P([T('2.4 Access. ',{size:20,bold:true,italic:true}),T('Client will register Users with usernames and passwords to access the Product. Client shall keep all such usernames and passwords safe and secure, and shall be responsible for all use of the Product using usernames and passwords issued to Client and its Users. Client shall notify Noodle immediately of any actual or suspected unauthorized use of any of its credentials for the Product.',{size:20})],{after:80}));
+  ch.push(P([T('2.5 Restrictions. ',{size:20,bold:true,italic:true}),T('Client shall not allow any unauthorized third party to: (a) use the Product for the benefit of any third party, or to develop or market any product, software or service that is functionally similar to or derivative of the Product, or for any other purpose not expressly permitted herein; (b) permit anyone who is not a User to access or use the Product; (c) sell, distribute, rent, lease, service bureau, post, link, disclose or provide access to the Product, directly or indirectly, to any third party; (d) alter, modify, debug, reverse engineer, decompile, disassemble, or otherwise attempt to derive or gain access to any software (including source code), or any other underlying data or technology, associated with the Product; or (e) use any robot, spider, scraper or other automated means to access the Product, or engage in any scraping, data-mining, harvesting, screen-scraping, data aggregating or indexing of the Product. All acts and omissions of Client Users shall be deemed to be those of Client, and Client shall be responsible therefor. Without limiting any of its other rights or remedies, Noodle reserves the right to suspend any User\'s right to access the Product if Noodle reasonably believes that such User has materially violated the restrictions and obligations in this SOW, in which case, it shall provide Client prompt written notice of such suspension.',{size:20})],{after:80}));
+  ch.push(P([T('2.6 Client Cooperation. ',{size:20,bold:true,italic:true}),T('Client shall reasonably cooperate with Noodle in all matters relating to the Product and respond promptly to any request from Noodle to provide timely access to source systems as well as information, approvals, authorizations or decisions that are outlined in the Implementation section and reasonably necessary for Noodle to provide the Product in accordance with this SOW.',{size:20})],{after:160}));
+
+  // Section 3: Additional Services
+  if(hasAddl){
+    ch.push(secHead('3. Additional Services'));
+    ch.push(P([T('3.1 Overview of Additional Services. ',{size:20,bold:true,italic:true}),T('Noodle will provide the Additional Services to Client as described below. These services are designed to complement the Noodle Learning Platform and support Client\'s broader lifelong learning strategy.',{size:20})],{after:120}));
+    SOW.addlServices.forEach((svc,i)=>{
+      const n='3.'+(i+2);
+      // Service heading
+      ch.push(new Paragraph({spacing:{before:200,after:80},children:[T(n+'. '+svc.name,{bold:true,size:22,color:TEAL})]}));
+      // 3.X.1 Overview
+      ch.push(P([T(n+'.1 Overview of the Service',{size:20,bold:true,italic:true})],{after:60}));
+      ch.push(P(T(svc.overview,{size:20}),{after:100}));
+      // 3.X.2 Scope of Services
+      ch.push(P([T(n+'.2 Scope of Services',{size:20,bold:true,italic:true})],{after:80}));
+      if(svc.scopeSections){
+        svc.scopeSections.forEach(sec=>{
+          // Sub-heading for each scope section
+          ch.push(new Paragraph({spacing:{before:100,after:40},children:[T(sec.heading,{bold:true,size:20})]}));
+          if(sec.intro) ch.push(P(T(sec.intro,{size:20}),{after:40}));
+          sec.items.forEach(item=>ch.push(bullet(item)));
+          if(sec.deliverables){
+            ch.push(P(T('Deliverables include:',{size:20}),{before:60,after:40}));
+            sec.deliverables.forEach(item=>ch.push(bullet(item)));
+          }
+        });
+      } else {
+        svc.scope.forEach(item=>ch.push(bullet(item)));
+      }
+      // 3.X.3 Client Responsibilities
+      ch.push(P([T(n+'.3 Client Responsibilities',{size:20,bold:true,italic:true})],{before:100,after:60}));
+      ch.push(P(T('Client shall:',{size:20}),{after:40}));
+      svc.resp.forEach(item=>ch.push(bullet(item)));
+      // 3.X.4 Fees
+      ch.push(P([T(n+'.4 Fees',{size:20,bold:true,italic:true})],{before:100,after:60}));
+      if(svc.id==='webaddl'){
+        ch.push(P([T('The fees associated with Website Design & Development are a one-time fee of ',{size:20}),T('$'+svc.price.toLocaleString(),{size:20,bold:true,color:TEAL}),T(', invoiced on the SOW Effective Date.',{size:20})],{after:80}));
+      } else if(svc.feesNote){
+        ch.push(P(T(svc.feesNote,{size:20}),{after:80}));
+      } else {
+        ch.push(P([T('The fees associated with '+svc.name+' are ',{size:20}),T('$'+svc.price.toLocaleString()+(svc.type==='Annual'?' per year':' (one-time)'),{size:20,bold:true,color:TEAL}),T('. '+svc.name+' is '+(svc.type==='Annual'?'licensed and billed annually for the duration of the SOW Term unless otherwise stated.':'a one-time fee invoiced on the SOW Effective Date.'),{size:20})],{after:80}));
+      }
+      // 3.X.5 Limitations
+      ch.push(P([T(n+'.5 Limitations',{size:20,bold:true,italic:true})],{after:60}));
+      ch.push(P(T('Unless expressly stated in this SOW or agreed to in writing:',{size:20}),{after:40}));
+      if(svc.limitItems){
+        svc.limitItems.forEach(item=>ch.push(bullet(item)));
+      } else {
+        ch.push(P(T(svc.limit,{size:20}),{after:0}));
+      }
+      ch.push(P(T(''),{after:120}));
+    });
+  }
+
+  // Training
+  ch.push(secHead(sn.training+'. Training for the Product'));
+  ch.push(P([T('Noodle will provide the following training for the Product:',{size:20})],{after:80}));
+  ch.push(bullet('15 hours of onboarding and training support for platform and administrative hub'));
+  ch.push(bullet('Ongoing training for Client, including FAQ, self-service content, and live training'));
+  ch.push(P(T(''),{after:80}));
+
+  // Support
+  ch.push(secHead(sn.support+'. Support: Availability and Accessibility'));
+  ch.push(P([T(sn.support+'.1 Support. ',{size:20,bold:true,italic:true}),T('Noodle shall provide Client with email support within 24 business hours, which Client may use to obtain reasonable assistance with respect to use of and access to the Product and to report any error, defect, or failure, whether full or partial, in the functioning of the Product or any failure of the Product to conform with the documentation therefor.',{size:20})],{after:80}));
+  ch.push(P([T(sn.support+'.2 Availability. ',{size:20,bold:true,italic:true}),T('Noodle shall use commercially reasonable efforts to provide the Product with a target uptime of 99.9% for student and administrative Users, twenty-four (24) hours a day, seven (7) days a week. Client agrees that from time to time the Product may be inaccessible or inoperable for various reasons, including (a) equipment malfunctions; (b) periodic maintenance procedures or repairs which Noodle may undertake from time to time; or (c) causes beyond the reasonable control of Noodle, including interruption or failure of telecommunication or digital transmission links, or network congestion or other failures (collectively "Downtime"). Noodle shall use commercially reasonable efforts to provide twenty-four (24) hour advance notice to Client in the event of any scheduled Downtime and to minimize any disruption, inaccessibility and/or inoperability of the Product in connection with Downtime, whether scheduled or not.',{size:20})],{after:80}));
+  ch.push(P([T(sn.support+'.3 Accessibility. ',{size:20,bold:true,italic:true}),T('Except for any Product offered as a Pilot, (a) Noodle shall ensure that any technology provided by Noodle in connection with this SOW, including without limitation, all web pages, web-based applications, operating system-based applications, online content, services and related resources (collectively, electronic information technology, or "EIT") is accessible to individuals with disabilities, and (b) all EIT shall comply with WCAG 2.0 AA standards and any other standards established under Section 508, Section 504, and the ADA that apply to the EIT provided by Noodle.',{size:20})],{after:160}));
+
+  // Term
+  ch.push(secHead(sn.term+'. Term and Termination'));
+  ch.push(P([T(sn.term+'.1 Term. ',{size:20,bold:true,italic:true}),T('The term of this SOW will begin on the Effective Date and continue for '+SOW.termMonths+' months ("SOW Term") unless earlier terminated. In the event Client terminates this SOW prior to the end of the SOW Term or any applicable Renewal Term, no refunds of the NLP Licensing Fee shall be granted.',{size:20})],{after:80}));
+  ch.push(P([T(sn.term+'.2 Renewal. ',{size:20,bold:true,italic:true}),T('Following the initial SOW Term, this SOW shall auto-renew on an annual basis unless Client sends Noodle written termination notice no fewer than thirty (30) days prior to the SOW Term end date.',{size:20})],{after:160}));
+
+  // Fees
+  ch.push(secHead(sn.fees+'. Fees and Invoicing'));
+  ch.push(P([T(sn.fees+'.1 Fees. ',{size:20,bold:true,italic:true}),T('Client agrees to pay Noodle the fees associated with the Products and services described in this SOW. The specific fees, products, and billing milestones are outlined in the fee schedule below. Unless otherwise stated, all fees are invoiced in advance of the applicable service period and are payable in accordance with the payment terms set forth in Noodle\'s General Terms of Business.',{size:20})],{after:80}));
+  ch.push(P([T(sn.fees+'.2 NLP Licensing Fee and Usage Tiers. ',{size:20,bold:true,italic:true}),T('The NLP Licensing Fee is based on the number of Active Learners using the Product and is subject to the pricing tiers outlined in Section 2 of this SOW. The fee schedule provided below reflects the anticipated licensing tier at the time this SOW is executed.',{size:20})],{after:60}));
+  ch.push(P([T('If Client\'s number of Active Learners exceeds the threshold associated with the currently invoiced tier, Noodle will invoice Client a prorated amount reflecting the applicable higher tier for the remainder of the applicable billing year.',{size:20})],{after:80}));
+  ch.push(P([T(sn.fees+'.3 Billing Schedule. ',{size:20,bold:true,italic:true}),T('Noodle will invoice Client according to the billing events and timelines specified in the fee schedule below.',{size:20})],{after:60}));
+  ch.push(P([T('Unless otherwise specified, invoices will be issued upon the applicable billing event and are payable within thirty (30) days of the invoice date in accordance with the payment terms set forth in Noodle\'s General Terms of Business.',{size:20})],{after:100}));
+
+  const summaryRows=[
+    new TableRow({children:[tealCellC('Year',1,2340),tealCellC('Year Total',1,4680),tealCellC('Invoice Date',1,2340)]}),
+    new TableRow({children:[new TableCell({columnSpan:3,width:{size:9360,type:WidthType.DXA},borders:ab(),margins:cm,children:[new Paragraph({alignment:AlignmentType.CENTER,spacing:{before:0,after:0},children:[T('Payments due Net 30.',{bold:true,size:18,italic:true})]})]})]}),
+  ];
+  SOW.billingSchedule.forEach((yg,idx)=>{
+    const shade=idx%2===1?GRAY:null;
+    let total=0;yg.rows.forEach(r=>{const m=r.amount.replace(/,/g,'').match(/\$([\d.]+)/);if(m)total+=parseFloat(m[1]);});
+    summaryRows.push(new TableRow({children:[
+      new TableCell({width:{size:2340,type:WidthType.DXA},borders:ab(),shading:shade?{fill:shade,type:ShadingType.CLEAR}:undefined,margins:cm,children:[new Paragraph({alignment:AlignmentType.CENTER,spacing:{before:0,after:0},children:[T('Year '+String(yg.year),{bold:true,size:18})]})]}),
+      new TableCell({width:{size:4680,type:WidthType.DXA},borders:ab(),shading:shade?{fill:shade,type:ShadingType.CLEAR}:undefined,margins:cm,children:[new Paragraph({alignment:AlignmentType.CENTER,spacing:{before:0,after:0},children:[T('$'+Math.round(total).toLocaleString(),{bold:true,size:18})]})]}),
+      new TableCell({width:{size:2340,type:WidthType.DXA},borders:ab(),shading:shade?{fill:shade,type:ShadingType.CLEAR}:undefined,margins:cm,children:[new Paragraph({alignment:AlignmentType.CENTER,spacing:{before:0,after:0},children:[T(yg.firstDate,{size:18})]})]}),
+    ]}));
+  });
+  ch.push(new Table({width:{size:9360,type:WidthType.DXA},columnWidths:[2340,4680,2340],rows:summaryRows}));
+  ch.push(P([T('See Appendix A for the full invoice schedule.',{size:20,color:TEAL,italic:true})],{before:80,after:80}));
+  if(SOW.inflationPct>0)ch.push(P([T('Annual inflation rate of '+SOW.inflationPct+'% is applied to annual fees from Year 2 onwards.',{size:18,italic:true,color:'888888'})],{after:120}));
+
+  // Client Data
+  ch.push(secHead(sn.data+'. Client Data and Responsibilities'));
+  ch.push(P([T(sn.data+'.1 Data. ',{size:20,bold:true,italic:true}),T('Noodle will not use Client Data other than as permitted in this SOW. Noodle shall operate the Product in a manner that provides reasonable information security for Client Data using commercially reasonable data backup, security, and recovery protections. The Parties shall comply with all applicable laws as well as industry best practices governing the collection, access, use, disclosure, safeguarding and destruction of each other\'s data. Client will provide Noodle with ready access upon request to all Client Data necessary for the operations of the Product.',{size:20})],{after:80}));
+  ch.push(P([T(sn.data+'.2 Data Sharing. ',{size:20,bold:true,italic:true}),T('Client acknowledges and agrees that Noodle may share anonymized and aggregated data derived from Client\'s usage of the Product with other entities participating in the Federated Network. The Federated Network is a collaborative use case of the Product, whereby Client and other universities share a common course catalog. Participating universities have the option to contribute their own courses to the network, thereby allowing other universities within the network to access and incorporate these courses into their respective catalogs. Additionally, universities can choose to solely incorporate participating courses within the network without contributing any of their own. Noodle shall ensure that all data shared within the Network is anonymized in a manner that prevents identification of individual students, faculty members, or any other identifiable parties. The shared data shall be used solely for the purpose of improving the functionality, features, and effectiveness of the Product. Client reserves the right to opt-out of data sharing with the Federated Network at any time by providing written notice to Noodle.',{size:20})],{after:80}));
+  ch.push(P([T(sn.data+'.3 Artificial Intelligence Integration. ',{size:20,bold:true,italic:true}),T('Client acknowledges that Noodle may utilize and share with its service providers and Sub-Processors anonymized Client data collected through the Product to develop, train, and improve AI algorithms and models incorporated into the Product. These AI algorithms may be integrated into the Product for various purposes, including but not limited to personalized learning experiences for students, predictive analytics to identify areas of improvement for educators or courses, automated grading and feedback mechanisms, adaptive learning pathways tailored to individual student needs, and enhanced data analysis and reporting capabilities.',{size:20})],{after:160}));
+
+  // GTB
+  // Section 8: Representations & Warranties
+  ch.push(secHead(sn.rep+'. Representations and Warranties; Disclaimer'));
+  ch.push(P([T(sn.rep+'.1 General Representations and Warranties. ',{size:20,bold:true,italic:true}),T('Each Party hereby represents and warrants to the other Party that: (a) its execution, delivery and performance of the Agreement do not and will not conflict with, result in a breach of, constitute a default under, or require the consent of any third party under, any agreement or other obligation to which such Party is subject; and (b) it shall comply with all state, federal and international laws applicable to its activities hereunder, including but not limited to FERPA and data privacy laws.',{size:20})],{after:80}));
+  ch.push(P([T(sn.rep+'.2 Noodle Limited Warranty. ',{size:20,bold:true,italic:true}),T('Noodle warrants that it will provide the Product in a competent and workmanlike manner, in accordance with good industry practices and this SOW. Noodle does not warrant that it will be able to correct all reported defects in the Product or that use of the Product will be uninterrupted or error free. Noodle makes no warranty regarding features or services (including data or content) provided by any third parties. Noodle retains the right to modify the Product in its sole discretion; provided that doing so does not have a material adverse impact on the Product hereunder. Notwithstanding the foregoing, if a Product or feature is provided to Client for a Pilot then it is provided "as is" with no warranties.',{size:20})],{after:160}));
+
+  // Section 9: Proprietary Rights
+  ch.push(secHead(sn.prop+'. Proprietary Rights of Client'));
+  ch.push(P([T(sn.prop+'.1 Trademark License: ',{size:20,bold:true,italic:true}),T('Client hereby grants to Noodle a license in its trademarks, service marks and trade names used in connection with the promotion and marketing of the partnership. Noodle shall have the right to sublicense use of the Brand in connection with its Services.',{size:20})],{after:160}));
+
+  ch.push(secHead(sn.gtb+'. Statement of Work and General Terms of Business'));
+  if(SOW.partnerType==='existing'&&SOW.gtbDate){ch.push(P([T('This Statement of Work and the General Terms of Business entered into on '+SOW.gtbDate+' will form the full agreement for the services that Noodle will provide to Client. If there is a conflict between this SOW and the GTB, this SOW shall control.',{size:20})],{after:200}));}
+  else{ch.push(P([T('This Statement of Work, the attached Data Protection Addendum, and the General Terms of Business at ',{size:20}),T('https://about.noodle.com/general-terms-of-business/version_2-1/',{size:20,color:TEAL}),T(' will form the full agreement. If there is a conflict between this SOW and the GTB, this SOW shall control.',{size:20})],{after:200}));}
+
+  // Financial POC
+  ch.push(secHead(sn.fin+'. Financial Point of Contact and Details'));
+  ch.push(P([T('To enter into this SOW, please provide your signature below and confirm the following billing information.',{size:20})],{after:120}));
+  ch.push(new Table({width:{size:9360,type:WidthType.DXA},columnWidths:[4680,4680],rows:[
+    new TableRow({children:[new TableCell({width:{size:4680,type:WidthType.DXA},borders:ab(TEAL),shading:{fill:TEAL,type:ShadingType.CLEAR},margins:cm,children:[new Paragraph({alignment:AlignmentType.CENTER,spacing:{before:0,after:0},children:[T(SOW.client,{bold:true,size:18,color:WHITE})]})]}),new TableCell({width:{size:4680,type:WidthType.DXA},borders:ab(TEAL),shading:{fill:TEAL,type:ShadingType.CLEAR},margins:cm,children:[new Paragraph({alignment:AlignmentType.CENTER,spacing:{before:0,after:0},children:[T('Noodle',{bold:true,size:18,color:WHITE})]})]}),]}),
+    new TableRow({children:[new TableCell({width:{size:4680,type:WidthType.DXA},borders:ab(),margins:{top:200,bottom:200,left:150,right:150},children:[P(T('Full Name:',{size:18}),{after:40}),P(T('Email:',{size:18}),{after:40}),P(T('Phone:',{size:18}),{after:0})]}),new TableCell({width:{size:4680,type:WidthType.DXA},borders:ab(),margins:{top:200,bottom:200,left:150,right:150},children:[P(T('Ruchin Patel',{size:18}),{after:40}),P(T('RPatel@Noodle.com',{size:18,color:TEAL}),{after:0})]})]}),
+  ]}));
+  ch.push(P(T(''),{after:80}));
+  ch.push(new Paragraph({spacing:{before:160,after:60},children:[T('Purchase Order Requirements',{bold:true,size:20})]}));
+  ch.push(P([T('\u2610  No, a signed PO is not required to process payment.',{size:20})],{after:40}));
+  ch.push(P([T('\u2610  Yes, a signed PO is required. Please send to ',{size:20}),T('accounting@noodle.com',{size:20,color:TEAL}),T(' no later than 30 days after the SOW Effective Date.',{size:20})],{after:120}));
+  ch.push(new Paragraph({spacing:{before:120,after:60},children:[T('Invoice Requirements',{bold:true,size:20})]}));
+  ch.push(P([T('\u2610  No specific requirements beyond referencing this SOW.',{size:20})],{after:40}));
+  ch.push(P([T('\u2610  Yes, we have additional requirements.',{size:20})],{after:160}));
+  ch.push(new Paragraph({spacing:{before:120,after:60},children:[T('Noodle Payment Instructions',{bold:true,size:20})]}));
+  ['Celtic Bank','268 South State Street, Suite 300','Salt Lake City, Utah 84111','Account: 11804279','ABA/Routing Number: 124084805','Reference: Noodle Partners, PBC'].forEach(l=>ch.push(P(T(l,{size:20}),{after:40})));
+  ch.push(P([T('Please contact ',{size:20}),T('RPatel@noodle.com',{size:20,color:TEAL}),T(' with any questions.',{size:20})],{after:200}));
+
+  // Signatures
+  ch.push(secHead('Agreement Date'));
+  ch.push(P([T('Agreed to as of ___________________ ("Effective Date")',{size:20})],{after:320}));
+  ch.push(new Table({width:{size:9360,type:WidthType.DXA},columnWidths:[4680,4680],rows:[
+    new TableRow({children:[new TableCell({width:{size:4680,type:WidthType.DXA},borders:anb(),margins:cm,children:[P(T(SOW.client,{bold:true,size:20}),{after:0})]}),new TableCell({width:{size:4680,type:WidthType.DXA},borders:anb(),margins:cm,children:[P(T('Noodle Partners, PBC',{bold:true,size:20}),{after:0})]})]}),
+    new TableRow({children:[new TableCell({width:{size:4680,type:WidthType.DXA},borders:anb(),margins:{top:400,bottom:0,left:150,right:150},children:[P(T('By: ___________________________',{size:20}),{after:0})]}),new TableCell({width:{size:4680,type:WidthType.DXA},borders:anb(),margins:{top:400,bottom:0,left:150,right:150},children:[P(T('By: ___________________________',{size:20}),{after:0})]})]}),
+    new TableRow({children:[new TableCell({width:{size:4680,type:WidthType.DXA},borders:anb(),margins:cm,children:[P(T('Name:',{size:20}),{after:80}),P(T('Title:',{size:20}),{after:80}),P(T('Date:',{size:20}),{after:0})]}),new TableCell({width:{size:4680,type:WidthType.DXA},borders:anb(),margins:cm,children:[P(T('Name: John Katzman',{size:20}),{after:80}),P(T('Title: Chief Executive Officer',{size:20}),{after:80}),P(T('Date:',{size:20}),{after:0})]})]}),
+  ]}));
+
+  // Appendix A
+  ch.push(new Paragraph({spacing:{before:0,after:0},children:[new TextRun({break:1,font:'Arial',size:20})]}));
+  ch.push(new Paragraph({spacing:{before:0,after:80},children:[T('Appendix A',{size:36})]}));
+  ch.push(new Paragraph({spacing:{before:0,after:240},children:[T('Detailed Invoice Schedule',{bold:true,size:22,color:INK2})]}));
+  const A_SVC=3840,A_AMT=2760,A_DT=2760,A_TOT=9360;
+  const aRows=[new TableRow({children:[new TableCell({columnSpan:3,width:{size:A_TOT,type:WidthType.DXA},borders:ab(),margins:cm,children:[new Paragraph({alignment:AlignmentType.CENTER,spacing:{before:0,after:0},children:[T('Payments due Net 30.',{bold:true,size:18,italic:true})]})]})]})];
+  SOW.billingSchedule.forEach(yg=>{
+    aRows.push(new TableRow({children:[new TableCell({columnSpan:3,width:{size:A_TOT,type:WidthType.DXA},borders:ab(TEAL),shading:{fill:TEAL_LT,type:ShadingType.CLEAR},margins:cm,children:[new Paragraph({alignment:AlignmentType.CENTER,spacing:{before:0,after:0},children:[T('Year '+String(yg.year),{bold:true,size:18,color:TEAL})]})]})]}));
+    aRows.push(new TableRow({children:[tealCellC('Service',1,A_SVC),tealCellC('Invoice Amount',1,A_AMT),tealCellC('Invoice Date',1,A_DT)]}));
+    yg.invoices[0].rows.forEach((row,i)=>{
+      const shade=i%2===1?GRAY:null;
+      aRows.push(new TableRow({children:[new TableCell({width:{size:A_SVC,type:WidthType.DXA},borders:ab(),shading:shade?{fill:shade,type:ShadingType.CLEAR}:undefined,margins:cm,children:[new Paragraph({spacing:{before:0,after:20},children:[T(row.service,{size:18})]}),new Paragraph({spacing:{before:0,after:0},children:[new TextRun({text:row.code,font:'Courier New',size:10,color:'888888'})]})]}),cCell(row.amount,A_AMT,shade),cCell(row.date,A_DT,shade)]}));
+    });
+    let yt=0;yg.invoices[0].rows.forEach(r=>{const m=r.amount.replace(/,/g,'').match(/\$([\d.]+)/);if(m)yt+=parseFloat(m[1]);});
+    aRows.push(new TableRow({children:[new TableCell({columnSpan:2,width:{size:A_SVC+A_AMT,type:WidthType.DXA},borders:ab(),shading:{fill:GRAY,type:ShadingType.CLEAR},margins:cm,children:[new Paragraph({alignment:AlignmentType.RIGHT,spacing:{before:0,after:0},children:[T('Year '+yg.year+' Total',{bold:true,size:18})]})]}),cCell('$'+Math.round(yt).toLocaleString(),A_DT,GRAY)]}));
+  });
+  ch.push(new Table({width:{size:A_TOT,type:WidthType.DXA},columnWidths:[A_SVC,A_AMT,A_DT],rows:aRows}));
+
+  // Appendix B: DPA
+  if(SOW.partnerType!=='existing'){
+    ch.push(new Paragraph({spacing:{before:0,after:0},children:[new TextRun({break:1,font:'Arial',size:20})]}));
+    ch.push(new Paragraph({spacing:{before:0,after:80},children:[T('Appendix B',{size:36})]}));
+    ch.push(new Paragraph({spacing:{before:0,after:160},children:[T('Data Protection Addendum',{bold:true,size:22,color:INK2})]}));
+    ch.push(P([T('This Data Protection Addendum ("Addendum") reflects the Parties\' agreement with respect to the Processing of Personal Data in connection with this Agreement. This Addendum is supplemental to and forms an integral part of the Agreement, and is effective upon its incorporation into the Agreement.',{size:20})],{after:100}));
+    ch.push(new Paragraph({spacing:{before:160,after:80},children:[T('Definitions.',{bold:true,italic:true,size:20})]}));
+    [['Personal Data','any information relating to an identified or identifiable natural person.'],['Processing or Processes','any operation or set of operations which are performed on Personal Data or on sets of Personal Data, whether or not by automated means, such as collection, recording, organization, structuring, storage, adaptation, or alteration, retrieval, consultation, use, disclosure by transmission, dissemination or otherwise making available, alignment or combination, restriction, erasure or destruction.'],['Data Subjects','any identified or identifiable natural person about or from whom data are collected as part of the Agreement or its Appendices.'],['Data Protected by Law','any information or data that is protected by federal, state, or local law intended to protect the personal information, including, without limitation, financial information under the Gramm-Leach-Bliley Act ("GLBA"), student information under the Family Education Rights and Privacy Act ("FERPA"), individually identifiable health information under the Health Insurance Portability and Accountability Act ("HIPAA"), and personally identifiable information under U.S. state privacy laws, such as the California Consumer Privacy Act ("CCPA"), as each is amended from time-to-time and as may be implemented by regulations, policies, edicts, opinions and practices. Data Protected by Law also includes any information or data that is protected by Regulation (EC) 2016/679 on the protection of natural persons with regard to the processing of personal data and on the free movement of such data (the "GDPR") and its applicable implementing rules and regulations.'],['Data Protection Laws','any applicable laws relating to privacy and the protection of Personal Data, including, but not limited to, the European GDPR, Californian CCPA, or Japanese APPI, among others.'],['Controller','a natural or legal person, public authority, agency, or other body which, alone or jointly with others, determines the purposes and means of the Processing of Personal Data.'],['Processor','a natural or legal person, public authority, agency, or other body which Processes Personal Data on behalf of the Controller.'],['Sub-Processor','any Processor engaged by either Party to assist in fulfilling its obligations with respect to the provision or improvement of the services under the Agreement. Sub-processors may include third parties or affiliates.']].forEach(([term,def])=>{ch.push(new Paragraph({spacing:{before:60,after:40},children:[T(term+': ',{size:20,italic:true,bold:true}),T(def,{size:20})]}));});
+    ch.push(new Paragraph({spacing:{before:160,after:80},children:[T('Scope.',{bold:true,italic:true,size:20})]}));
+    ['1.1. As part of this SOW, this Addendum is applicable to the Processing of Personal Data that falls under and is required to provide the Services specified in the Agreement.','1.2. In particular, the Personal Data that is subject to this Addendum is: Identification data, academic data, usage data, communications, admissions data, and performance data.'].forEach(item=>ch.push(P(T(item,{size:20}),{after:60})));
+    ch.push(P([T('1.3. The Personal Data that is subject to this Addendum as referenced above is further related to the following categories of data subjects:',{size:20})],{after:40}));
+    ch.push(P([T('1.3.1. Students, faculty, staff, and prospective, and students',{size:20})],{before:0,after:60}));
+    ch.push(P([T('1.4. Pursuant to the Agreement, Personal Data is processed by Noodle on behalf of Client for the purpose(s) of:',{size:20})],{after:40}));
+    ch.push(P([T('1.4.1. Client offering online courses and degrees, academic services, marketing services, or recruiting.',{size:20})],{before:0,after:60}));
+    ch.push(P([T('1.5. Personal Data shall be processed by Noodle on behalf of Client for the term of the Agreement and/or SOW.',{size:20})],{after:60}));
+    ch.push(new Paragraph({spacing:{before:160,after:80},children:[T('Roles.',{bold:true,italic:true,size:20})]}));
+    ch.push(P([T('2.1 Client alone determines the purposes and means of the Processing of Data Subject\'s Personal Data. Under the GDPR, relative to Noodle, Client is deemed the data "Controller."',{size:20})],{after:60}));
+    ch.push(P([T('2.2 Noodle processes Personal Data on behalf of Client. Under the GDPR, Noodle is a data "Processor." Under the CCPA, Noodle is a "Servicer" to Client.',{size:20})],{after:80}));
+    ch.push(new Paragraph({spacing:{before:160,after:80},children:[T('Processing Requirements.',{bold:true,italic:true,size:20})]}));
+    ['3.1 Noodle shall process Personal Data received from Client or collected or otherwise processed on behalf of Client only as provided in the Agreement or on documented written instructions from Client, including with regard to transfers of Personal Data to third countries and will not process that data in any other way or for any other purpose.','3.2 Noodle shall only process the personal data that is necessary for the provision of the Services described in the Agreement.','3.3 Noodle shall not retain, use, or disclose Personal Data for any purpose other than for the specific purpose of performing the Services specified in the Agreement and its addended SOW(s), including disclosing the Personal Data for a commercial purpose.','3.4 Noodle will take all appropriate measures to ensure that third parties under its control do not access and Process Personal Data for purposes not contemplated by this Addendum.','3.5 Noodle may engage Sub-processors in connection with the Addendum of the Services. Noodle shall enter into contractual terms with each Sub-processor consistent with the requirements of this Addendum, which shall at a minimum require the Sub-processor to agree to (a) act only on Noodle\'s instructions in Processing Personal Data (which instructions shall be consistent with Client\'s instructions to Noodle), and (b) protect the Personal Data to a standard consistent with the requirements of this Addendum and the Agreement.'].forEach(item=>ch.push(P(T(item,{size:20}),{after:60})));
+    ch.push(new Paragraph({spacing:{before:160,after:80},children:[T('Rights of Data Subjects.',{bold:true,italic:true,size:20})]}));
+    ['4.1 Client is solely responsible for ensuring compliance with all applicable privacy laws and regulations. This includes, but is not limited to, obtaining valid consent from users for the collection, use, and processing of their Personal Data. The Client shall post a comprehensive privacy policy on its instance of NLP that outlines the types of information collected, how it is used, and the rights of users regarding their personal data. The Client shall also ensure that such privacy policy is easily accessible to users and regularly updated to reflect any changes in data handling practices or legal requirements.','4.2 Client is responsible to assess any requests from Data Subjects in the exercise of their rights granted by applicable Data Protection laws, such as the GDPR or CCPA, and their applicable implementing rules and regulations and to provide a resolution to such requests.','4.3 Client shall promptly direct to Noodle all requests it may receive directly from Data Subjects in the exercise of their rights in relation to the Processing subject to this Addendum.','4.4 Noodle shall assist Client by implementing appropriate technical and organizational measures, insofar as it is possible, for the fulfillment of Client\'s obligations to inform data subjects about the details of processing and to respond to requests for access, rectification, erasure, and portability of personal data as provided for by applicable laws, such as the GDPR and CCPA, and their implementing rules and regulations, as well as for requests to object to processing of data.','4.5 If a Data Subject brings a claim directly against Noodle for damages suffered in relation to Client\'s breach of this Addendum or applicable law, such as the GDPR or CCPA, and their applicable implementing rules and regulations, Client will indemnify Noodle a for any cost, charge, damages, expenses or loss arising from such a claim.'].forEach(item=>ch.push(P(T(item,{size:20}),{after:60})));
+    ch.push(new Paragraph({spacing:{before:200,after:0},children:[T('Agreed to as the Effective Date, above.',{size:20,italic:true})]}));
+  }
+
+  const doc=new Document({
+    numbering:{config:[{reference:'bullets',levels:[{level:0,format:LevelFormat.BULLET,text:'\u2022',alignment:AlignmentType.LEFT,style:{paragraph:{indent:{left:360,hanging:280}}}}]}]},
+    styles:{default:{document:{run:{font:'Arial',size:20}}}},
+    sections:[{
+      properties:{page:{size:{width:12240,height:15840},margin:{top:1080,right:1080,bottom:1080,left:1080}}},
+      headers:{default:new Header({children:[new Paragraph({spacing:{before:0,after:80},border:{bottom:{style:BorderStyle.SINGLE,size:4,color:TEAL,space:1}},children:[T('NOODLE\u2122  |  Noodle Learning Platform \u2014 Statement of Work',{bold:true,size:20,color:TEAL})]})]})},
+      footers:{default:new Footer({children:[new Paragraph({spacing:{before:80,after:0},border:{top:{style:BorderStyle.SINGLE,size:4,color:TEAL,space:1}},tabStops:[{type:TabStopType.RIGHT,position:TabStopPosition.MAX}],children:[T('highered.noodle.com',{size:16,color:TEAL}),new TextRun({text:'\t',font:'Arial',size:16}),T('Confidential',{size:16,color:INK2})]})]})},
+      children:ch
+    }]
+  });
+  Packer.toBlob(doc).then(onDone);
+}
+
+buildTierGrid();
+buildAddlRows();
+rp();
+
+</script>
+</body>
+</html>
