@@ -167,7 +167,7 @@ html,body{height:100%;font-family:inherit;background:#F9F9F8;color:var(--ink);fo
       <div class="sec-lbl">Required Services</div>
       <div class="item-wrap">
         <div class="item-hd req"><span class="item-nm">Discovery</span><span class="item-badge badge-req">Required</span></div>
-        <div class="item-body"><div style="font-size:12px;color:#444">One-time <strong style="color:#1A6F8A">$50,000</strong> technical discovery &amp; implementation (4–6 weeks)</div></div>
+        <div class="item-body"><div style="font-size:12px;color:#444">One-time <strong style="color:#1A6F8A">$20,000</strong> technical discovery (4–6 weeks)</div></div>
       </div>
       <div class="item-wrap">
         <div class="item-hd req"><span class="item-nm">LMS Integration</span><span class="item-badge badge-req">Required</span></div>
@@ -365,7 +365,7 @@ function getSowData(){
   } else {
     nlpServices.push({name:'Noodle Learning Platform Annual License Fee',code:'TECH-ANN-NLP-LIC',type:'Annual',fee:tier.fee,note:'Up to '+tier.learners.toLocaleString()+' Active Learners'});
   }
-  nlpServices.push({name:'Noodle Learning Platform Discovery & Implementation',code:'TECH-LCH-NLP-DISC',type:'One-Time',fee:50000,note:'4–6 week technical discovery and platform setup'});
+  nlpServices.push({name:'Noodle Learning Platform Discovery & Implementation',code:'TECH-LCH-NLP-DISC',type:'One-Time',fee:20000,note:'4–6 week technical discovery and platform setup'});
   if(lmsOption===0)nlpServices.push({name:'LMS Integration — Existing LMS Connector',code:'TECH-LCH-NLP-LMSINT',type:'One-Time',fee:30000,note:'Integration with your existing LMS'});
   else nlpServices.push({name:'Noodle LMS (Moodle) — Hosted & Managed',code:'TECH-ANN-NLP-MOODLE',type:'Annual',fee:10000,note:'Noodle-hosted and managed Moodle LMS'});
   if(morOption===0)
