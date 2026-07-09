@@ -146,7 +146,21 @@ html,body{height:100%;font-family:inherit;background:#F9F9F8;color:var(--ink);fo
   <div class="cfg-scroll">
     <div class="sec-wrap">
       <div class="sec-lbl">NLP Licensing Fee</div>
-      <div class="tier-grid" id="tierGrid"></div>
+      <div style="display:flex;gap:6px;margin-bottom:10px">
+        <div id="pmLegacy" class="radio-opt sel" style="flex:1;text-align:center" onclick="selPricingModel('legacy')"><div><div class="ro-lbl">Legacy (Flat Tier)</div><div class="ro-price" style="color:#888">Pre-FY27 deals</div></div></div>
+        <div id="pmFY27" class="radio-opt" style="flex:1;text-align:center" onclick="selPricingModel('fy27')"><div><div class="ro-lbl">FY27 (Base + Incremental)</div><div class="ro-price" style="color:#888">June '26 template</div></div></div>
+      </div>
+      <div id="legacyTierWrap">
+        <div class="tier-grid" id="tierGrid"></div>
+      </div>
+      <div id="fy27Wrap" style="display:none">
+        <div class="f full"><label>Projected Active Learner Volume (Year 1)</label><input id="fy27Volume" type="number" value="500" min="0" step="100" oninput="rp()"></div>
+        <div style="font-size:11px;color:#888;line-height:1.6;margin-top:8px;padding:8px 10px;background:#FAFAFA;border:1px solid #E2E2E2;border-radius:6px;">
+          $25,000 base (up to 1,000 learners), then per-learner bands: $20 (1,001–2,500) · $17 (2,501–5,000) · $15 (5,001–10,000) · $12 (10,001–25,000) · $10 (25,001–50,000) · negotiated above 50,000.<br>
+          Years 2+ repeat the Year 1 projected volume/fee, subject to Annual Reconciliation against actual usage.
+        </div>
+        <div id="fy27NegWarn" style="display:none;font-size:11px;color:#C0392B;margin-top:8px;padding:6px 8px;background:#FCEBEB;border-radius:5px;">⚠ Volume exceeds 50,000 learners — pricing for this tier must be negotiated and entered manually before export.</div>
+      </div>
     </div>
 
     <div class="sec-wrap">
@@ -248,7 +262,32 @@ const NLP_TIERS=[
   {fee:3015000,learners:325000},{fee:5015000,learners:550000},
 ];
 
-let selTier=0,lmsOption=0,morOption=-1; // -1 = no selection
+// FY27 pricing model: flat Minimum Annual Platform Fee + marginal per-learner bands above 1,000
+const FY27_BASE_FEE=25000, FY27_BASE_LEARNERS=1000;
+const FY27_BANDS=[
+  {from:1000,to:2500,rate:20},
+  {from:2500,to:5000,rate:17},
+  {from:5000,to:10000,rate:15},
+  {from:10000,to:25000,rate:12},
+  {from:25000,to:50000,rate:10},
+  {from:50000,to:Infinity,rate:null}, // negotiated
+];
+function calcFY27Fee(volume){
+  volume=Math.max(0,volume||0);
+  let fee=FY27_BASE_FEE,remaining=volume-FY27_BASE_LEARNERS,negotiated=false;
+  if(remaining<=0)return{fee,negotiated};
+  for(const b of FY27_BANDS){
+    if(remaining<=0)break;
+    const bandSize=b.to-b.from;
+    const inBand=Math.min(remaining,bandSize);
+    if(b.rate===null){negotiated=true;break;} // volume pushed into 50,000+ band
+    fee+=inBand*b.rate;
+    remaining-=inBand;
+  }
+  return{fee:Math.round(fee),negotiated};
+}
+
+let selTier=0,lmsOption=0,morOption=-1,pricingModel='legacy'; // -1 = no selection
 
 function buildTierGrid(){
   const g=document.getElementById('tierGrid');
@@ -262,6 +301,14 @@ function buildTierGrid(){
   });
 }
 function selTierFn(i){selTier=i;document.querySelectorAll('.tier-opt').forEach((el,j)=>el.classList.toggle('selected',j===i));rp();}
+function selPricingModel(m){
+  pricingModel=m;
+  document.getElementById('pmLegacy').classList.toggle('sel',m==='legacy');
+  document.getElementById('pmFY27').classList.toggle('sel',m==='fy27');
+  document.getElementById('legacyTierWrap').style.display=m==='legacy'?'block':'none';
+  document.getElementById('fy27Wrap').style.display=m==='fy27'?'block':'none';
+  rp();
+}
 
 function buildAddlRows(){
   const c=document.getElementById('addlRows');
@@ -308,11 +355,17 @@ function getSowData(){
   let endStr='[End Date]';
   if(sd){const d=new Date(sd+'T00:00:00');d.setMonth(d.getMonth()+termMonths);d.setDate(d.getDate()-1);endStr=d.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});}
   const tier=NLP_TIERS[selTier];
+  const fy27Volume=parseInt(document.getElementById('fy27Volume')?.value)||0;
+  const fy27Calc=calcFY27Fee(fy27Volume);
   const startCalYear=sd?new Date(sd+'T00:00:00').getFullYear():new Date().getFullYear();
 
   const nlpServices=[];
-  nlpServices.push({name:'Noodle Learning Platform Annual License Fee',code:'TECH-ANN-NLP-LIC',type:'Annual',fee:tier.fee,note:'Up to '+tier.learners.toLocaleString()+' Active Learners'});
-  nlpServices.push({name:'Noodle Learning Platform Discovery & Implementation',code:'TECH-LCH-NLP-DISC',type:'One-Time',fee:20000,note:'4–6 week technical discovery and platform setup'});
+  if(pricingModel==='fy27'){
+    nlpServices.push({name:'Noodle Learning Platform Annual License Fee',code:'TECH-ANN-NLP-LIC',type:'Annual',fee:fy27Calc.fee,note:'Based on '+fy27Volume.toLocaleString()+' Projected Active Learners'+(fy27Calc.negotiated?' (50,000+ — pricing to be negotiated)':'')});
+  } else {
+    nlpServices.push({name:'Noodle Learning Platform Annual License Fee',code:'TECH-ANN-NLP-LIC',type:'Annual',fee:tier.fee,note:'Up to '+tier.learners.toLocaleString()+' Active Learners'});
+  }
+  nlpServices.push({name:'Noodle Learning Platform Discovery & Implementation',code:'TECH-LCH-NLP-DISC',type:'One-Time',fee:50000,note:'4–6 week technical discovery and platform setup'});
   if(lmsOption===0)nlpServices.push({name:'LMS Integration — Existing LMS Connector',code:'TECH-LCH-NLP-LMSINT',type:'One-Time',fee:30000,note:'Integration with your existing LMS'});
   else nlpServices.push({name:'Noodle LMS (Moodle) — Hosted & Managed',code:'TECH-ANN-NLP-MOODLE',type:'Annual',fee:10000,note:'Noodle-hosted and managed Moodle LMS'});
   if(morOption===0)
@@ -345,13 +398,18 @@ function getSowData(){
     const allRows=invoices.flatMap(inv=>inv.rows);
     billingSchedule.push({year:y,invoices,rows:allRows,firstDate:invoices[0]?.date||'[Date]'});
   }
-  return{client,startStr,endStr,termMonths,termYears,partnerType,gtbDate,tier,nlpServices,addlServices,allServices,billingSchedule,inflationPct,hasAddl:addlServices.length>0,lmsOption,morOption};
+  return{client,startStr,endStr,termMonths,termYears,partnerType,gtbDate,tier,nlpServices,addlServices,allServices,billingSchedule,inflationPct,hasAddl:addlServices.length>0,lmsOption,morOption,pricingModel,fy27Volume,fy27Calc};
 }
 
 function rp(){
   const d=getSowData();
-  document.getElementById('msub').textContent=d.client+' · '+d.tier.learners.toLocaleString()+' learners · $'+d.tier.fee.toLocaleString()+'/yr'+(d.hasAddl?' + '+d.addlServices.length+' additional service'+(d.addlServices.length>1?'s':''):'');
-  document.getElementById('expBtn').disabled=(d.morOption===-1);
+  const licSummary=d.pricingModel==='fy27'
+    ?d.fy27Volume.toLocaleString()+' projected learners · $'+d.fy27Calc.fee.toLocaleString()+'/yr'
+    :d.tier.learners.toLocaleString()+' learners · $'+d.tier.fee.toLocaleString()+'/yr';
+  document.getElementById('msub').textContent=d.client+' · '+licSummary+(d.hasAddl?' + '+d.addlServices.length+' additional service'+(d.addlServices.length>1?'s':''):'');
+  const negWarn=document.getElementById('fy27NegWarn');
+  if(negWarn)negWarn.style.display=(d.pricingModel==='fy27'&&d.fy27Calc.negotiated)?'block':'none';
+  document.getElementById('expBtn').disabled=(d.morOption===-1)||(d.pricingModel==='fy27'&&d.fy27Calc.negotiated);
   document.getElementById('morWarn').style.display=d.morOption===-1?'block':'none';
 
   // Build a simple services list for preview
@@ -486,7 +544,9 @@ function buildDocx(SOW,btn,onDone){
   // Definitions
   ch.push(secHead('Definitions'));
   ch.push(P([T('Note: certain terms are defined in the GTB.',{size:20,italic:true})],{after:80}));
-  const defs=[['Product','The Noodle Learning Platform ("NLP").'],['Active Learners','An entity passing through the NLP software (paid or free) with at least one login in the last 12 month period.'],['User','An individual authorized by Client to use the Product regardless of whether the individual has logged into the Product.'],['NLP Licensing Fee','The annual fee Client pays in advance to Noodle as of the Effective Date, and for each year thereafter, for the use of NLP.']];
+  const defs=SOW.pricingModel==='fy27'
+    ?[['Product','The Noodle Learning Platform ("NLP").'],['Active Learner','An individual learner account (paid or free) with at least one login to the Product during the applicable Contract Year.'],['User','An individual authorized by Client to use the Product regardless of whether the individual has logged into the Product.'],['NLP Licensing Fee','The total annual fees Client pays to Noodle for the use of NLP, consisting of the Minimum Annual Platform Fee and any Incremental Learner Fees calculated based on Active Learner volume, subject to annual reconciliation.'],['Contract Year','A one (1) year period beginning on the SOW Effective Date and on each anniversary thereof during the SOW Term and any Renewal Term.']]
+    :[['Product','The Noodle Learning Platform ("NLP").'],['Active Learners','An entity passing through the NLP software (paid or free) with at least one login in the last 12 month period.'],['User','An individual authorized by Client to use the Product regardless of whether the individual has logged into the Product.'],['NLP Licensing Fee','The annual fee Client pays in advance to Noodle as of the Effective Date, and for each year thereafter, for the use of NLP.']];
   if(hasAddl)defs.push(['Additional Services','The technology and services described in Section 3 of this SOW, which are separate from the Product and may have distinct fees, scopes of work, and terms.']);
   defs.forEach(([term,def])=>{ch.push(new Paragraph({spacing:{before:60,after:40},children:[T(term+': ',{size:20,italic:true,bold:true}),T(def,{size:20})]}));});
   ch.push(P(T(''),{after:80}));
@@ -507,12 +567,26 @@ function buildDocx(SOW,btn,onDone){
 
 
 
-  // NLP tier table
-  ch.push(P([T('NLP Licensing Fee Tiers',{size:20,bold:true})],{before:120,after:80}));
-  const tRows=[new TableRow({children:[tealCellC('NLP Licensing Fee',1,4680),tealCellC('Maximum Active Learners on Platform',1,4680)]})];
-  NLP_TIERS.forEach(t=>tRows.push(new TableRow({children:[cCell('$'+t.fee.toLocaleString(),4680),cCell(t.learners.toLocaleString(),4680)]})));
-  ch.push(new Table({width:{size:9360,type:WidthType.DXA},columnWidths:[4680,4680],rows:tRows}));
-  ch.push(P([T('The NLP Licensing Fee is based on the total number of Active Learners. When the number of Active Learners passes the threshold for a given tier, Client is invoiced a prorated amount to cover the higher tier fee for the remainder of the billing year.',{size:20})],{before:120,after:80}));
+  // NLP fee table (legacy tier OR FY27 base + incremental bands)
+  if(SOW.pricingModel==='fy27'){
+    ch.push(P([T('NLP Licensing Fee Structure',{size:20,bold:true})],{before:120,after:80}));
+    const feeRows=[new TableRow({children:[tealCellC('Fee Component',1,4680),tealCellC('Description',1,4680)]}),
+      new TableRow({children:[cCell('Minimum Annual Platform Fee',4680),cCell('$25,000 annually, inclusive of up to 1,000 Active Learners.',4680)]})];
+    ch.push(new Table({width:{size:9360,type:WidthType.DXA},columnWidths:[4680,4680],rows:feeRows}));
+    ch.push(P([T('Incremental Pricing for Active Learners',{size:20,bold:true})],{before:120,after:60}));
+    ch.push(P([T('Incremental fees are charged per Active Learner per Contract Year for volume exceeding 1,000 Active Learners.',{size:20})],{after:80}));
+    const bandRows=[new TableRow({children:[tealCellC('Active Learners During Contract Year',1,4680),tealCellC('Incremental Fee Per Learner',1,4680)]})];
+    const bandLabels=[['0–1,000','Included in Minimum Annual Platform Fee'],['1,001–2,500','$20 per learner'],['2,501–5,000','$17 per learner'],['5,001–10,000','$15 per learner'],['10,001–25,000','$12 per learner'],['25,001–50,000','$10 per learner'],['50,000+','Pricing to be mutually agreed upon in writing.']];
+    bandLabels.forEach(([a,b])=>bandRows.push(new TableRow({children:[cCell(a,4680),cCell(b,4680)]})));
+    ch.push(new Table({width:{size:9360,type:WidthType.DXA},columnWidths:[4680,4680],rows:bandRows}));
+    ch.push(P([T(''),T('')],{after:60}));
+  } else {
+    ch.push(P([T('NLP Licensing Fee Tiers',{size:20,bold:true})],{before:120,after:80}));
+    const tRows=[new TableRow({children:[tealCellC('NLP Licensing Fee',1,4680),tealCellC('Maximum Active Learners on Platform',1,4680)]})];
+    NLP_TIERS.forEach(t=>tRows.push(new TableRow({children:[cCell('$'+t.fee.toLocaleString(),4680),cCell(t.learners.toLocaleString(),4680)]})));
+    ch.push(new Table({width:{size:9360,type:WidthType.DXA},columnWidths:[4680,4680],rows:tRows}));
+    ch.push(P([T('The NLP Licensing Fee is based on the total number of Active Learners. When the number of Active Learners passes the threshold for a given tier, Client is invoiced a prorated amount to cover the higher tier fee for the remainder of the billing year.',{size:20})],{before:120,after:80}));
+  }
   ch.push(P([T('Pricing Validity: ',{size:20,bold:true,italic:true}),T('The fees stated in this SOW are valid only for agreements executed on or before May 30, 2026. If this SOW is signed before that date, the stated pricing will remain in effect for the duration of the initial term. For any renewal term or for agreements executed after August 31, 2026, Noodle reserves the right to modify pricing at its sole discretion.',{size:20})],{after:80}));
   ch.push(P([T('Support: ',{size:20,bold:true,italic:true}),T('24/7 support for Active Learners and Users is included in the NLP Licensing Fee.',{size:20})],{after:80}));
   ch.push(P([T('Transaction Fees: ',{size:20,bold:true,italic:true}),T('Credit card transaction fees, taxes, and foreign exchange fees are automatically removed from the gross revenue collected during each transaction. Net revenue per transaction is passed into a dedicated Stripe account for Client.',{size:20})],{after:80}));
@@ -605,27 +679,44 @@ function buildDocx(SOW,btn,onDone){
   // Fees
   ch.push(secHead(sn.fees+'. Fees and Invoicing'));
   ch.push(P([T(sn.fees+'.1 Fees. ',{size:20,bold:true,italic:true}),T('Client agrees to pay Noodle the fees associated with the Products and services described in this SOW. The specific fees, products, and billing milestones are outlined in the fee schedule below. Unless otherwise stated, all fees are invoiced in advance of the applicable service period and are payable in accordance with the payment terms set forth in Noodle\'s General Terms of Business.',{size:20})],{after:80}));
-  ch.push(P([T(sn.fees+'.2 NLP Licensing Fee and Usage Tiers. ',{size:20,bold:true,italic:true}),T('The NLP Licensing Fee is based on the number of Active Learners using the Product and is subject to the pricing tiers outlined in Section 2 of this SOW. The fee schedule provided below reflects the anticipated licensing tier at the time this SOW is executed.',{size:20})],{after:60}));
-  ch.push(P([T('If Client\'s number of Active Learners exceeds the threshold associated with the currently invoiced tier, Noodle will invoice Client a prorated amount reflecting the applicable higher tier for the remainder of the applicable billing year.',{size:20})],{after:80}));
+  if(SOW.pricingModel==='fy27'){
+    ch.push(P([T(sn.fees+'.2 NLP Licensing Fee and Usage Tiers. ',{size:20,bold:true,italic:true}),T('The NLP Licensing Fee is based on a Minimum Annual Platform Fee plus incremental fees for Active Learners exceeding the initial threshold, subject to the pricing structure outlined in Section 2 of this SOW. The fee schedule below reflects projected Active Learner volume for invoicing purposes and is subject to annual reconciliation and future-year baseline adjustments pursuant to Sections '+sn.fees+'.4 and '+sn.fees+'.5.',{size:20})],{after:80}));
+  } else {
+    ch.push(P([T(sn.fees+'.2 NLP Licensing Fee and Usage Tiers. ',{size:20,bold:true,italic:true}),T('The NLP Licensing Fee is based on the number of Active Learners using the Product and is subject to the pricing tiers outlined in Section 2 of this SOW. The fee schedule provided below reflects the anticipated licensing tier at the time this SOW is executed.',{size:20})],{after:60}));
+    ch.push(P([T('If Client\'s number of Active Learners exceeds the threshold associated with the currently invoiced tier, Noodle will invoice Client a prorated amount reflecting the applicable higher tier for the remainder of the applicable billing year.',{size:20})],{after:80}));
+  }
   ch.push(P([T(sn.fees+'.3 Billing Schedule. ',{size:20,bold:true,italic:true}),T('Noodle will invoice Client according to the billing events and timelines specified in the fee schedule below.',{size:20})],{after:60}));
   ch.push(P([T('Unless otherwise specified, invoices will be issued upon the applicable billing event and are payable within thirty (30) days of the invoice date in accordance with the payment terms set forth in Noodle\'s General Terms of Business.',{size:20})],{after:100}));
 
+  const isFY27=SOW.pricingModel==='fy27';
+  const yearColW=isFY27?1800:2340,volColW=isFY27?1800:0,totalColW=isFY27?3960:4680,dateColW=isFY27?1800:2340;
+  const headerCells=isFY27
+    ?[tealCellC('Year',1,yearColW),tealCellC('Projected Active Learner Volume',1,volColW),tealCellC('Year Total',1,totalColW),tealCellC('Invoice Date',1,dateColW)]
+    :[tealCellC('Year',1,yearColW),tealCellC('Year Total',1,totalColW),tealCellC('Invoice Date',1,dateColW)];
   const summaryRows=[
-    new TableRow({children:[tealCellC('Year',1,2340),tealCellC('Year Total',1,4680),tealCellC('Invoice Date',1,2340)]}),
-    new TableRow({children:[new TableCell({columnSpan:3,width:{size:9360,type:WidthType.DXA},borders:ab(),margins:cm,children:[new Paragraph({alignment:AlignmentType.CENTER,spacing:{before:0,after:0},children:[T('Payments due Net 30.',{bold:true,size:18,italic:true})]})]})]}),
+    new TableRow({children:headerCells}),
+    new TableRow({children:[new TableCell({columnSpan:isFY27?4:3,width:{size:9360,type:WidthType.DXA},borders:ab(),margins:cm,children:[new Paragraph({alignment:AlignmentType.CENTER,spacing:{before:0,after:0},children:[T('Payments due Net 30.',{bold:true,size:18,italic:true})]})]})]}),
   ];
   SOW.billingSchedule.forEach((yg,idx)=>{
     const shade=idx%2===1?GRAY:null;
     let total=0;yg.rows.forEach(r=>{const m=r.amount.replace(/,/g,'').match(/\$([\d.]+)/);if(m)total+=parseFloat(m[1]);});
-    summaryRows.push(new TableRow({children:[
-      new TableCell({width:{size:2340,type:WidthType.DXA},borders:ab(),shading:shade?{fill:shade,type:ShadingType.CLEAR}:undefined,margins:cm,children:[new Paragraph({alignment:AlignmentType.CENTER,spacing:{before:0,after:0},children:[T('Year '+String(yg.year),{bold:true,size:18})]})]}),
-      new TableCell({width:{size:4680,type:WidthType.DXA},borders:ab(),shading:shade?{fill:shade,type:ShadingType.CLEAR}:undefined,margins:cm,children:[new Paragraph({alignment:AlignmentType.CENTER,spacing:{before:0,after:0},children:[T('$'+Math.round(total).toLocaleString(),{bold:true,size:18})]})]}),
-      new TableCell({width:{size:2340,type:WidthType.DXA},borders:ab(),shading:shade?{fill:shade,type:ShadingType.CLEAR}:undefined,margins:cm,children:[new Paragraph({alignment:AlignmentType.CENTER,spacing:{before:0,after:0},children:[T(yg.firstDate,{size:18})]})]}),
-    ]}));
+    const rowCells=[
+      new TableCell({width:{size:yearColW,type:WidthType.DXA},borders:ab(),shading:shade?{fill:shade,type:ShadingType.CLEAR}:undefined,margins:cm,children:[new Paragraph({alignment:AlignmentType.CENTER,spacing:{before:0,after:0},children:[T('Year '+String(yg.year),{bold:true,size:18})]})]}),
+    ];
+    if(isFY27)rowCells.push(new TableCell({width:{size:volColW,type:WidthType.DXA},borders:ab(),shading:shade?{fill:shade,type:ShadingType.CLEAR}:undefined,margins:cm,children:[new Paragraph({alignment:AlignmentType.CENTER,spacing:{before:0,after:0},children:[T(SOW.fy27Volume.toLocaleString(),{size:18})]})]}));
+    rowCells.push(new TableCell({width:{size:totalColW,type:WidthType.DXA},borders:ab(),shading:shade?{fill:shade,type:ShadingType.CLEAR}:undefined,margins:cm,children:[new Paragraph({alignment:AlignmentType.CENTER,spacing:{before:0,after:0},children:[T('$'+Math.round(total).toLocaleString(),{bold:true,size:18})]})]}));
+    rowCells.push(new TableCell({width:{size:dateColW,type:WidthType.DXA},borders:ab(),shading:shade?{fill:shade,type:ShadingType.CLEAR}:undefined,margins:cm,children:[new Paragraph({alignment:AlignmentType.CENTER,spacing:{before:0,after:0},children:[T(yg.firstDate,{size:18})]})]}));
+    summaryRows.push(new TableRow({children:rowCells}));
   });
-  ch.push(new Table({width:{size:9360,type:WidthType.DXA},columnWidths:[2340,4680,2340],rows:summaryRows}));
+  ch.push(new Table({width:{size:9360,type:WidthType.DXA},columnWidths:isFY27?[yearColW,volColW,totalColW,dateColW]:[yearColW,totalColW,dateColW],rows:summaryRows}));
   ch.push(P([T('See Appendix A for the full invoice schedule.',{size:20,color:TEAL,italic:true})],{before:80,after:80}));
   if(SOW.inflationPct>0)ch.push(P([T('Annual inflation rate of '+SOW.inflationPct+'% is applied to annual fees from Year 2 onwards.',{size:18,italic:true,color:'888888'})],{after:120}));
+  if(isFY27){
+    ch.push(P([T(sn.fees+'.4 Annual Reconciliation. ',{size:20,bold:true,italic:true}),T('Within thirty (30) days following the end of each Contract Year, Noodle shall measure the actual Active Learner volume used by Client during that Contract Year. Noodle shall then invoice Client for any incremental amount due resulting from actual Active Learner volume exceeding the projected Active Learner volume used for invoicing.',{size:20})],{after:80}));
+    ch.push(P([T(sn.fees+'.5 Future Year Baseline. ',{size:20,bold:true,italic:true}),T('For each subsequent Contract Year (Years 2+), Noodle shall invoice Client based on the prior Contract Year\'s actual Active Learner volume, calculated using the pricing structure in Section 2.1 and subject to the reconciliation provisions in Section '+sn.fees+'.4. This SOW\'s billing schedule assumes the Year 1 projected volume repeats for subsequent years absent a different actual baseline.',{size:20})],{after:80}));
+    ch.push(P([T(sn.fees+'.6 Extreme Growth Protection. ',{size:20,bold:true,italic:true}),T('In the event that Client\'s actual Active Learner volume during a Contract Year exceeds three times (3x) the projected Active Learner volume used for the initial invoice, Noodle reserves the right to reassess pricing during the applicable Contract Year and may issue an interim invoice reflecting the materially increased usage, calculated in accordance with the Incremental Pricing structure set forth in Section 2.1.',{size:20})],{after:80}));
+    ch.push(P([T(sn.fees+'.7 Usage Reporting. ',{size:20,bold:true,italic:true}),T('Upon Client\'s reasonable written request, Noodle will provide reporting reasonably sufficient to validate Active Learner counts used for invoicing purposes under this Section '+sn.fees+'.',{size:20})],{after:120}));
+  }
 
   // Client Data
   ch.push(secHead(sn.data+'. Client Data and Responsibilities'));
