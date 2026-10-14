@@ -456,7 +456,7 @@ function rp(){
     :`Payment Terms are outlined in the <a href="https://about.noodle.com/general-terms-of-business/version_2-1/" style="color:#1A6F8A">General Terms of Business</a>. All payments are due Net 30.`;
 
   document.getElementById('pv').innerHTML=`<div class="doc">
-    <div class="doc-hd"><div class="doc-logo">N<sup>™</sup>OODLE</div><div class="doc-url">highered.noodle.com</div></div>
+    <div class="doc-hd"><div class="doc-logo">N<sup>™</sup>OODLE</div><div class="doc-url">https://www.noodle.com/</div></div>
     <div class="doc-bd">
       <div class="doc-h1">Statement of Work</div>
       <div class="doc-sub">Noodle Learning Platform for ${d.client}</div>
@@ -814,7 +814,7 @@ function buildDocx(SOW,btn,onDone){
     sections:[{
       properties:{page:{size:{width:12240,height:15840},margin:{top:1080,right:1080,bottom:1080,left:1080}}},
       headers:{default:new Header({children:[new Paragraph({spacing:{before:0,after:80},border:{bottom:{style:BorderStyle.SINGLE,size:4,color:TEAL,space:1}},children:[T('NOODLE\u2122  |  Noodle Learning Platform \u2014 Statement of Work',{bold:true,size:20,color:TEAL})]})]})},
-      footers:{default:new Footer({children:[new Paragraph({spacing:{before:80,after:0},border:{top:{style:BorderStyle.SINGLE,size:4,color:TEAL,space:1}},tabStops:[{type:TabStopType.RIGHT,position:TabStopPosition.MAX}],children:[T('highered.noodle.com',{size:16,color:TEAL}),new TextRun({text:'\t',font:'Arial',size:16}),T('Confidential',{size:16,color:INK2})]})]})},
+      footers:{default:new Footer({children:[new Paragraph({spacing:{before:80,after:0},border:{top:{style:BorderStyle.SINGLE,size:4,color:TEAL,space:1}},tabStops:[{type:TabStopType.RIGHT,position:TabStopPosition.MAX}],children:[T('https://www.noodle.com/',{size:16,color:TEAL}),new TextRun({text:'\t',font:'Arial',size:16}),T('Confidential',{size:16,color:INK2})]})]})},
       children:ch
     }]
   });
