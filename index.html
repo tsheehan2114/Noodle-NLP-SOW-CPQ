@@ -161,6 +161,9 @@ html,body{height:100%;font-family:inherit;background:#F9F9F8;color:var(--ink);fo
         </div>
         <div id="fy27NegWarn" style="display:none;font-size:11px;color:#C0392B;margin-top:8px;padding:6px 8px;background:#FCEBEB;border-radius:5px;">⚠ Volume exceeds 50,000 learners — pricing for this tier must be negotiated and entered manually before export.</div>
       </div>
+      <div style="font-size:11px;color:#444;line-height:1.5;margin-top:10px;padding:8px 10px;background:#E8F4F8;border:1px solid #C8E4EE;border-radius:6px;">
+        <strong>Included in every NLP license:</strong> Access to one (1) standard WordPress CMS template at no additional cost.
+      </div>
     </div>
 
     <div class="sec-wrap">
@@ -231,6 +234,10 @@ import * as docxLib from "https://unpkg.com/docx@8.5.0/build/index.mjs";
 window._docxLib = docxLib;
 </script>
 <script>
+// Standard NLP license inclusions and technology exclusions (shared by preview and Word export)
+const INCLUDED_CMS_TEMPLATE_TEXT='The NLP Licensing Fee includes access to one (1) standard WordPress Content Management System (CMS) template at no additional cost. Additional templates, customizations, or development services beyond the standard offering may be separately scoped and priced.';
+const ADDITIONAL_TECHNOLOGY_TEXT='Client is responsible for all fees associated with the use of specialty LTI, LMS (other than Noodle Moodle), CMS solutions beyond the included WordPress template, or other technologies. Noodle may assist in the procurement and management of these technologies for an additional fee.';
+
 const ADDL_CATALOG=[
   {id:'webaddl',name:'Website Design & Development',code:'MKT-LCH-WEBDEV',type:'One-Time',defaultPrice:30000,
    overview:'Noodle will design and develop a customized microsite experience to support Client\'s marketing and recruitment objectives. This service includes strategic discovery, information architecture, content placement, thematic design, and technical configuration. The resulting microsite will reflect Client\'s brand standards, support targeted user journeys, and integrate with standard inquiry workflows.',
@@ -419,6 +426,8 @@ function rp(){
     svcsHtml+=`<tr><td>${s.name}</td><td>${s.type}</td><td><span class="pv">$${s.fee.toLocaleString()}${s.type==='Annual'?' / yr':' one-time'}</span></td></tr>`;
   });
   svcsHtml+='</table>';
+  svcsHtml+=`<div class="para"><strong>Included CMS Template:</strong> ${INCLUDED_CMS_TEMPLATE_TEXT}</div>`;
+  svcsHtml+=`<div class="para"><strong>Additional Technology:</strong> ${ADDITIONAL_TECHNOLOGY_TEXT}</div>`;
 
   let addlHtml='';
   if(d.hasAddl){
@@ -589,6 +598,7 @@ function buildDocx(SOW,btn,onDone){
   }
   ch.push(P([T('Pricing Validity: ',{size:20,bold:true,italic:true}),T('The fees stated in this SOW are valid only for agreements executed on or before May 30, 2026. If this SOW is signed before that date, the stated pricing will remain in effect for the duration of the initial term. For any renewal term or for agreements executed after August 31, 2026, Noodle reserves the right to modify pricing at its sole discretion.',{size:20})],{after:80}));
   ch.push(P([T('Support: ',{size:20,bold:true,italic:true}),T('24/7 support for Active Learners and Users is included in the NLP Licensing Fee.',{size:20})],{after:80}));
+  ch.push(P([T('Included CMS Template: ',{size:20,bold:true,italic:true}),T(INCLUDED_CMS_TEMPLATE_TEXT,{size:20})],{after:80}));
   ch.push(P([T('Transaction Fees: ',{size:20,bold:true,italic:true}),T('Credit card transaction fees, taxes, and foreign exchange fees are automatically removed from the gross revenue collected during each transaction. Net revenue per transaction is passed into a dedicated Stripe account for Client.',{size:20})],{after:80}));
   const implText = SOW.lmsOption===0
     ? 'The implementation services outlined in this SOW include the integration and connection with your Learning Management System (LMS). Any additional integrations beyond the LMS, whether with third-party systems, tools, or platforms, will require a separate assessment. Such additional integrations will be subject to approval and will incur an additional fee, which will be outlined in a separate agreement or amendment.'
@@ -599,7 +609,7 @@ function buildDocx(SOW,btn,onDone){
     ? 'Noodle will serve as the merchant of record for all credit card transactions related to the Services provided under this Agreement. In this capacity, Noodle will assume responsibility for payment processing, tax compliance, and associated administrative obligations, including the collection and remittance of applicable sales taxes. The Client acknowledges and agrees to an annual Merchant of Record fee of $40,000 to cover these services and related costs.'
     : 'The Client will serve as the merchant of record for all credit card transactions related to the Services provided under this Agreement. In this capacity, the Client will be responsible for payment processing, tax compliance, and all associated administrative obligations, including the collection and remittance of applicable sales taxes. Noodle will not assume any merchant of record responsibilities under this Agreement. If the Client does not serve as the merchant of record at any time during the Term, Noodle will assume this responsibility and the annual Merchant of Record fee of $40,000 will apply.';
   ch.push(P([T('Merchant of Record: ',{size:20,bold:true,italic:true}),T(morText,{size:20})],{after:80}));
-  ch.push(P([T('Additional Technology: ',{size:20,bold:true,italic:true}),T('Client is responsible for all fees associated with the use of specialty LTI, LMS (other than Noodle Moodle), CMS, or other technologies. Noodle may assist in the procurement and management of these technologies for an additional fee.',{size:20})],{after:80}));
+  ch.push(P([T('Additional Technology: ',{size:20,bold:true,italic:true}),T(ADDITIONAL_TECHNOLOGY_TEXT,{size:20})],{after:80}));
   ch.push(P([T('2.2 Provision Generally. ',{size:20,bold:true,italic:true}),T('During the SOW Term or any Renewal Term (as defined in Section '+sn.term+'), Noodle will provide Client with access to and use of the Product through Noodle\'s cloud-hosted software-as-a-service application. Noodle will provide Client with access to the documentation for the Product. Client may upload information into the Product (the "Client Data"), which may include, without limitation, personally identifiable information ("PII") regarding Users of Client, which may be subject to the Family Education Rights and Privacy Act (FERPA) and other data privacy laws. The Product will generate results based on analysis of Client Data (the "Results"), which Client can access within the Product.',{size:20})],{after:80}));
   ch.push(P([T('2.3 Grant of Rights. ',{size:20,bold:true,italic:true}),T('Subject to Client\'s compliance with the terms and conditions of this SOW, Noodle hereby grants to Client a limited, non-exclusive, non-transferable, non-sublicensable right to access and use the Product, solely for Client to offer educational content for their Active Learners and Users, during the applicable SOW Term or Renewal Term. All rights not expressly granted to Client are reserved by Noodle and its licensors or other providers. There are no implied rights.',{size:20})],{after:80}));
   ch.push(P([T('2.4 Access. ',{size:20,bold:true,italic:true}),T('Client will register Users with usernames and passwords to access the Product. Client shall keep all such usernames and passwords safe and secure, and shall be responsible for all use of the Product using usernames and passwords issued to Client and its Users. Client shall notify Noodle immediately of any actual or suspected unauthorized use of any of its credentials for the Product.',{size:20})],{after:80}));
