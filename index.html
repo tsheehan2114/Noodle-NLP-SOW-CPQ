@@ -23535,7 +23535,7 @@ function rp(){
   const termSec=d.hasAddl?6:5;const feesSec=d.hasAddl?7:6;
   const ptPara=d.partnerType==='existing'&&d.gtbDate
     ?`Payment Terms are outlined in the General Terms of Business entered into on ${d.gtbDate}. All payments are due Net 30.`
-    :`Payment Terms are outlined in the <a href="https://about.noodle.com/general-terms-of-business/version_2-1/" style="color:#1A6F8A">General Terms of Business</a>. All payments are due Net 30.`;
+    :`Payment Terms are outlined in the <a href="https://about.noodle.com/general-terms-of-business/version_2-2/" style="color:#1A6F8A">General Terms of Business</a>. All payments are due Net 30.`;
 
   document.getElementById('pv').innerHTML=`<div class="doc">
     <div class="doc-hd"><div class="doc-logo">N<sup>™</sup>OODLE</div><div class="doc-url">https://www.noodle.com/</div></div>
@@ -23620,7 +23620,7 @@ function buildDocx(SOW,btn,onDone){
   if(SOW.partnerType==='existing'&&SOW.gtbDate){
     ch.push(P([T('This SOW incorporates by reference the General Terms of Business entered into on '+SOW.gtbDate+' (the "GTB"), the attached Data Protection Addendum, and any other attachments hereto, which together contains the complete understanding and Agreement of the Parties with respect to the subject matter hereof, and supersedes all prior or contemporaneous agreements or understandings, oral or written, with respect thereto. If there is a conflict between the terms of this SOW and the GTB, this SOW shall control.',{size:20})],{after:160}));
   } else {
-    ch.push(P([T('This SOW incorporates by reference Noodle\'s General Terms of Business, located at ',{size:20}),T('https://about.noodle.com/general-terms-of-business/version_2-1/',{size:20,color:TEAL}),T(' (the "GTB"), the attached Data Protection Addendum, and any other attachments hereto, which together contains the complete understanding and Agreement of the Parties with respect to the subject matter hereof, and supersedes all prior or contemporaneous agreements or understandings, oral or written, with respect thereto. If there is a conflict between the terms of this SOW and the GTB, this SOW shall control.',{size:20})],{after:160}));
+    ch.push(P([T('This SOW incorporates by reference Noodle\'s General Terms of Business, located at ',{size:20}),T('https://about.noodle.com/general-terms-of-business/version_2-2/',{size:20,color:TEAL}),T(' (the "GTB"), the attached Data Protection Addendum, and any other attachments hereto, which together contains the complete understanding and Agreement of the Parties with respect to the subject matter hereof, and supersedes all prior or contemporaneous agreements or understandings, oral or written, with respect thereto. If there is a conflict between the terms of this SOW and the GTB, this SOW shall control.',{size:20})],{after:160}));
   }
 
   // Definitions
@@ -23819,7 +23819,7 @@ function buildDocx(SOW,btn,onDone){
 
   ch.push(secHead(sn.gtb+'. Statement of Work and General Terms of Business'));
   if(SOW.partnerType==='existing'&&SOW.gtbDate){ch.push(P([T('This Statement of Work and the General Terms of Business entered into on '+SOW.gtbDate+' will form the full agreement for the services that Noodle will provide to Client. If there is a conflict between this SOW and the GTB, this SOW shall control.',{size:20})],{after:200}));}
-  else{ch.push(P([T('This Statement of Work, the attached Data Protection Addendum, and the General Terms of Business at ',{size:20}),T('https://about.noodle.com/general-terms-of-business/version_2-1/',{size:20,color:TEAL}),T(' will form the full agreement. If there is a conflict between this SOW and the GTB, this SOW shall control.',{size:20})],{after:200}));}
+  else{ch.push(P([T('This Statement of Work, the attached Data Protection Addendum, and the General Terms of Business at ',{size:20}),T('https://about.noodle.com/general-terms-of-business/version_2-2/',{size:20,color:TEAL}),T(' will form the full agreement. If there is a conflict between this SOW and the GTB, this SOW shall control.',{size:20})],{after:200}));}
 
   // Financial POC
   ch.push(secHead(sn.fin+'. Financial Point of Contact and Details'));
